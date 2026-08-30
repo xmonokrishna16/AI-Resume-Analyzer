@@ -26,6 +26,10 @@ document.getElementById('analyze-form').addEventListener('submit', async (e) => 
             uploadSection.style.display = 'none';
             dashboardSection.style.display = 'block';
 
+            // Render Education and Experience
+            document.getElementById('edu-text').innerText = data.education.length > 0 ? data.education.join(', ') : 'None Detected';
+            document.getElementById('exp-text').innerText = data.experience;
+
             // 1. Render Score Chart
             renderChart(data.match_score);
             document.getElementById('score-text').innerText = `${data.match_score}% Match`;

@@ -9,7 +9,7 @@ from flask_login import LoginManager, login_user, login_required, logout_user, c
 from core.db import get_db_connection
 from core.models import User
 from core.parser import extract_text_from_pdf, extract_text_from_docx
-from core.nlp_engine import extract_skills
+from core.nlp_engine import extract_skills, extract_education, extract_experience
 from core.matcher import calculate_match
 from core.roadmap import generate_roadmap
 
@@ -93,10 +93,12 @@ def home():
     """Renders the main dashboard and fetches user analysis history."""
     conn = get_db_connection()
     history = []
+    default_resume = None
     
     if conn:
         cursor = conn.cursor(dictionary=True)
-        # SQL Join to get the resume filename, job title, and score for the current user
+        
+        # Fetch History
         query = """
             SELECT r.original_filename, j.job_description, a.match_score, a.analyzed_at 
             FROM Analysis a 
@@ -107,96 +109,111 @@ def home():
         """
         cursor.execute(query, (current_user.id,))
         history = cursor.fetchall()
+        
+        # Fetch Default Resume Status
+        cursor.execute("SELECT original_filename FROM Resumes WHERE user_id = %s AND is_default = TRUE LIMIT 1", (current_user.id,))
+        default_resume = cursor.fetchone()
+        
         cursor.close()
         conn.close()
         
-    return render_template('index.html', user=current_user, history=history)
+    return render_template('index.html', user=current_user, history=history, default_resume=default_resume)
 
 @app.route('/api/analyze', methods=['POST'])
 @login_required
 def analyze_resume():
-    """Handles resume upload, NLP analysis, and saves results under current_user."""
-
-    # 1. Validate file request
-    if 'resume' not in request.files:
-        return jsonify({"error": "No resume file uploaded."}), 400
+    """Handles resume upload or uses the default, runs NLP, and saves results."""
     
-    file = request.files['resume']
+    file = request.files.get('resume')
     job_description = request.form.get('job_desc', '')
+    save_default = request.form.get('save_default') == 'on'
 
-    if file.filename == '':
-        return jsonify({"error": "Empty filename."}), 400
+    raw_text = ""
+    filename = ""
+    resume_id = None
+    using_default = False
 
-    # 2. Save file temporarily
-    filename = secure_filename(file.filename)
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    file.save(filepath)
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
 
-    # 3. Parse document
-    if filename.endswith('.pdf'):
-        raw_text = extract_text_from_pdf(filepath)
-    elif filename.endswith('.docx'):
-        raw_text = extract_text_from_docx(filepath)
-    else:
-        if os.path.exists(filepath):
+    # 1. Check if a new file was uploaded
+    if file and file.filename != '':
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+
+        if filename.endswith('.pdf'):
+            raw_text = extract_text_from_pdf(filepath)
+        elif filename.endswith('.docx'):
+            raw_text = extract_text_from_docx(filepath)
+        else:
             os.remove(filepath)
-        return jsonify({"error": "Unsupported format. Upload PDF or DOCX."}), 400
-
-    # Clean up temporary file
-    if os.path.exists(filepath):
+            return jsonify({"error": "Unsupported format. Upload PDF or DOCX."}), 400
+        
+        # Clean up temporary file
         os.remove(filepath)
+    else:
+        # 2. No file uploaded -> Look for a saved default resume
+        cursor.execute("SELECT id, original_filename, raw_text FROM Resumes WHERE user_id = %s AND is_default = TRUE LIMIT 1", (current_user.id,))
+        default_res = cursor.fetchone()
+        
+        if not default_res:
+            return jsonify({"error": "No file uploaded and no default resume found."}), 400
+            
+        raw_text = default_res['raw_text']
+        filename = default_res['original_filename']
+        resume_id = default_res['id']
+        using_default = True
 
-    # 4. NLP Skill Extraction
+    # 3. NLP Skill Extraction & Matching
     resume_skills = extract_skills(raw_text)
     job_skills = extract_skills(job_description.lower())
-
-    # 5. Semantic Matching & Gap Analysis
     match_score, missing_skills = calculate_match(resume_skills, job_skills)
-    
-    # 6. Generate Learning Roadmap
     roadmap = generate_roadmap(missing_skills)
 
-    # 7. Save to MySQL using current_user.id
+    # --- NEW: Extract Education & Experience ---
+    education_found = extract_education(raw_text)
+    experience_found = extract_experience(raw_text)
+
+    # 4. Save to Database
     try:
-        conn = get_db_connection()
-        if conn:
-            cursor = conn.cursor()
+        cursor.execute("INSERT INTO Jobs (job_title, job_description) VALUES (%s, %s)", ("Target Role", job_description))
+        job_id = cursor.lastrowid
+        
+        # If we uploaded a NEW file, insert it into Resumes
+        if not using_default:
+            # If they checked the box, remove the default flag from their old resumes first
+            if save_default:
+                cursor.execute("UPDATE Resumes SET is_default = FALSE WHERE user_id = %s", (current_user.id,))
             
-            # Insert Job Record
             cursor.execute(
-                "INSERT INTO Jobs (job_title, job_description) VALUES (%s, %s)", 
-                ("Target Role", job_description)
-            )
-            job_id = cursor.lastrowid
-            
-            # Insert Resume Record for Logged-In User
-            cursor.execute(
-                "INSERT INTO Resumes (user_id, original_filename, raw_text) VALUES (%s, %s, %s)", 
-                (current_user.id, filename, raw_text)
+                "INSERT INTO Resumes (user_id, original_filename, raw_text, is_default) VALUES (%s, %s, %s, %s)", 
+                (current_user.id, filename, raw_text, save_default)
             )
             resume_id = cursor.lastrowid
             
-            # Insert Analysis Result
-            cursor.execute(
-                "INSERT INTO Analysis (resume_id, job_id, match_score, missing_skills) VALUES (%s, %s, %s, %s)", 
-                (resume_id, job_id, match_score, json.dumps(missing_skills))
-            )
-            
-            conn.commit()
-            cursor.close()
-            conn.close()
+        # Link the Analysis to whichever resume_id we used
+        cursor.execute(
+            "INSERT INTO Analysis (resume_id, job_id, match_score, missing_skills) VALUES (%s, %s, %s, %s)", 
+            (resume_id, job_id, match_score, json.dumps(missing_skills))
+        )
+        conn.commit()
     except Exception as e:
         print(f"Database save error: {e}")
+    finally:
+        cursor.close()
+        conn.close()
 
-    # 8. Return JSON Response
+    # 5. Return JSON Response
     return jsonify({
         "status": "success",
         "resume_skills_found": resume_skills,
         "job_skills_required": job_skills,
         "match_score": match_score,
         "missing_skills": missing_skills,
-        "roadmap": roadmap
+        "roadmap": roadmap,
+        "education": education_found,
+        "experience": experience_found
     })
-
 if __name__ == '__main__':
     app.run(debug=True)
