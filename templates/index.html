@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Resume Analyzer</title>
+    <title>AI Resume Analyzer - Dashboard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -12,17 +12,22 @@
 <body>
     <div class="container">
         <!-- Header -->
-        <header>
-            <h1>AI Resume Analyzer</h1>
-            <p>Upload your resume to discover your skill gaps.</p>
+        <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <div>
+                <h1>AI Resume Analyzer</h1>
+                <p>Welcome back, <strong>{{ user.name }}</strong>!</p>
+            </div>
+            <a href="{{ url_for('logout') }}" class="btn-secondary"
+                style="text-decoration: none; padding: 10px 20px;">Log Out</a>
         </header>
 
         <!-- Upload Section -->
         <div id="upload-section" class="card">
+            <h2>New Analysis</h2>
             <form id="analyze-form">
                 <div class="form-group">
                     <label>Target Job Description</label>
-                    <textarea name="job_desc" rows="5" required
+                    <textarea name="job_desc" rows="4" required
                         placeholder="Paste the job requirements here..."></textarea>
                 </div>
                 <div class="form-group">
@@ -34,31 +39,51 @@
             <div id="loading" style="display: none;">🧠 AI is analyzing your profile...</div>
         </div>
 
-        <!-- Dashboard Section (Hidden by default) -->
-        <div id="dashboard-section" class="card" style="display: none;">
-            <h2>Analysis Results</h2>
-
+        <!-- Live Results Section (Hidden by default) -->
+        <div id="dashboard-section" class="card" style="display: none; margin-top: 20px;">
+            <h2>Live Analysis Results</h2>
             <div class="dashboard-grid">
-                <!-- Score Chart -->
                 <div class="chart-container">
                     <canvas id="scoreChart"></canvas>
                     <h3 id="score-text">0%</h3>
                 </div>
-
-                <!-- Missing Skills -->
                 <div class="skills-container">
                     <h3>Critical Missing Skills</h3>
                     <ul id="missing-skills-list" class="bad-list"></ul>
                 </div>
             </div>
-
-            <!-- Roadmap -->
             <div class="roadmap-container">
                 <h3>Personalized Learning Roadmap</h3>
                 <div id="roadmap-list" class="roadmap-timeline"></div>
             </div>
+            <button onclick="location.reload()" class="btn-secondary">View History</button>
+        </div>
 
-            <button onclick="location.reload()" class="btn-secondary">Analyze Another</button>
+        <!-- History Section -->
+        <div class="card" style="margin-top: 20px;">
+            <h2>Past Analyses</h2>
+            {% if history %}
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Resume File</th>
+                        <th>Match Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in history %}
+                    <tr>
+                        <td>{{ row.analyzed_at.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ row.original_filename }}</td>
+                        <td><strong>{{ row.match_score }}%</strong></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p style="color: #64748b;">You haven't analyzed any resumes yet.</p>
+            {% endif %}
         </div>
     </div>
 

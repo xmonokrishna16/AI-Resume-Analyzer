@@ -106,3 +106,26 @@ button:hover {
     margin-bottom: 15px;
     border-radius: 0 6px 6px 0;
 }
+
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.history-table th,
+.history-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.history-table th {
+    background-color: #f1f5f9;
+    font-weight: 600;
+    color: #475569;
+}
+
+.history-table tr:hover {
+    background-color: #f8fafc;
+}

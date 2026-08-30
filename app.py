@@ -90,8 +90,27 @@ def logout():
 @app.route('/')
 @login_required
 def home():
-    """Renders the main dashboard (only accessible to logged-in users)."""
-    return render_template('index.html', user=current_user)
+    """Renders the main dashboard and fetches user analysis history."""
+    conn = get_db_connection()
+    history = []
+    
+    if conn:
+        cursor = conn.cursor(dictionary=True)
+        # SQL Join to get the resume filename, job title, and score for the current user
+        query = """
+            SELECT r.original_filename, j.job_description, a.match_score, a.analyzed_at 
+            FROM Analysis a 
+            JOIN Resumes r ON a.resume_id = r.id 
+            JOIN Jobs j ON a.job_id = j.id 
+            WHERE r.user_id = %s 
+            ORDER BY a.analyzed_at DESC
+        """
+        cursor.execute(query, (current_user.id,))
+        history = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        
+    return render_template('index.html', user=current_user, history=history)
 
 @app.route('/api/analyze', methods=['POST'])
 @login_required
