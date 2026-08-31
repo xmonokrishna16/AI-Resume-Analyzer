@@ -9,7 +9,7 @@ from flask_login import LoginManager, login_user, login_required, logout_user, c
 from core.db import get_db_connection
 from core.models import User
 from core.parser import extract_text_from_pdf, extract_text_from_docx
-from core.nlp_engine import extract_skills, extract_education, extract_experience
+from core.nlp_engine import extract_skills, extract_education, extract_experience, check_ats_formatting, extract_contact_info
 from core.matcher import calculate_match
 from core.roadmap import generate_roadmap
 
@@ -174,6 +174,12 @@ def analyze_resume():
     # --- NEW: Extract Education & Experience ---
     education_found = extract_education(raw_text)
     experience_found = extract_experience(raw_text)
+    
+    # --- NEW: ATS Formatting & Contact Checks ---
+    ats_health = check_ats_formatting(raw_text)
+    contact_info = extract_contact_info(raw_text)
+
+
 
     # 4. Save to Database
     try:
@@ -213,7 +219,9 @@ def analyze_resume():
         "missing_skills": missing_skills,
         "roadmap": roadmap,
         "education": education_found,
-        "experience": experience_found
+        "experience": experience_found,
+        "ats_health": ats_health,
+        "contact_info": contact_info
     })
 @app.route('/api/delete_history', methods=['POST'])
 @login_required

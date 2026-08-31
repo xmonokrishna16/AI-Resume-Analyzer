@@ -73,3 +73,40 @@ def extract_experience(text):
         return f"{match.group(1)} Years"
     
     return "Entry Level / Not Specified"
+
+def check_ats_formatting(text):
+    """Checks for standard ATS formatting requirements."""
+    if not text:
+        return {"word_count": 0, "status": "Fail", "message": "Resume is empty."}
+    
+    word_count = len(text.split())
+    
+    if word_count < 250:
+        status = "Warning"
+        message = "Resume is too short. Add more detail to your experience."
+    elif word_count > 1200:
+        status = "Warning"
+        message = "Resume is too long. Try to condense it to 1-2 pages."
+    else:
+        status = "Pass"
+        message = "Optimal length."
+        
+    return {"word_count": word_count, "status": status, "message": message}
+
+def extract_contact_info(text):
+    """Extracts email, phone, and LinkedIn presence using Regex."""
+    if not text:
+        return {"email": False, "phone": False, "linkedin": False}
+    
+    text_lower = text.lower()
+    
+    # Standard email regex
+    has_email = bool(re.search(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', text))
+    
+    # Phone regex (matches formats like (123) 456-7890, 123-456-7890, +91 9876543210, etc.)
+    has_phone = bool(re.search(r'(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}', text))
+    
+    # LinkedIn regex
+    has_linkedin = bool(re.search(r'linkedin\.com/in/[a-zA-Z0-9_-]+', text_lower))
+    
+    return {"email": has_email, "phone": has_phone, "linkedin": has_linkedin}
