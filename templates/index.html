@@ -7,6 +7,7 @@
     <title>AI Resume Analyzer - Dashboard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 
 <body>
@@ -82,7 +83,14 @@
                 <h3>Personalized Learning Roadmap</h3>
                 <div id="roadmap-list" class="roadmap-timeline"></div>
             </div>
-            <button onclick="location.reload()" class="btn-secondary">View History</button>
+            <!-- Dashboard Action Buttons -->
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button id="download-pdf-btn" data-username="{{ user.name }}"
+                    style="background-color: #10b981; flex: 1;">📄
+                    Download PDF Report</button>
+                <button onclick="location.reload()" class="btn-secondary" style="flex: 1; margin-top: 0;">View
+                    History</button>
+            </div>
         </div>
 
         <!-- History Section -->
@@ -92,6 +100,7 @@
             <table class="history-table">
                 <thead>
                     <tr>
+                        <th style="width: 40px;"><input type="checkbox" id="select-all"></th>
                         <th>Date</th>
                         <th>Resume File</th>
                         <th>Match Score</th>
@@ -100,6 +109,7 @@
                 <tbody>
                     {% for row in history %}
                     <tr>
+                        <td><input type="checkbox" class="delete-checkbox" value="{{ row.analysis_id }}"></td>
                         <td>{{ row.analyzed_at.strftime('%Y-%m-%d') }}</td>
                         <td>{{ row.original_filename }}</td>
                         <td><strong>{{ row.match_score }}%</strong></td>
@@ -107,9 +117,26 @@
                     {% endfor %}
                 </tbody>
             </table>
+            <button id="delete-selected-btn"
+                style="background-color: #ef4444; margin-top: 15px; display: none; width: auto;">🗑️ Delete Selected</button>
             {% else %}
             <p style="color: #64748b;">You haven't analyzed any resumes yet.</p>
             {% endif %}
+        </div>
+        </div>
+        
+        <!-- Secure Password Modal (Hidden by default) -->
+        <div id="password-modal"
+            style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000;">
+            <div class="card" style="max-width: 350px; width: 100%; text-align: center;">
+                <h3 style="margin-top: 0; color: #ef4444;">Confirm Deletion</h3>
+                <p style="font-size: 0.9em;">Please enter your password to permanently delete the selected records.</p>
+                <input type="password" id="delete-password" placeholder="Account Password" style="margin-bottom: 15px;">
+                <div style="display: flex; gap: 10px;">
+                    <button id="confirm-delete-btn" style="background-color: #ef4444; flex: 1;">Delete</button>
+                    <button id="cancel-delete-btn" class="btn-secondary" style="flex: 1; margin-top: 0;">Cancel</button>
+                </div>
+            </div>
         </div>
     </div>
 

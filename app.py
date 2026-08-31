@@ -100,7 +100,7 @@ def home():
         
         # Fetch History
         query = """
-            SELECT r.original_filename, j.job_description, a.match_score, a.analyzed_at 
+            SELECT a.id AS analysis_id, r.original_filename, j.job_description, a.match_score, a.analyzed_at 
             FROM Analysis a 
             JOIN Resumes r ON a.resume_id = r.id 
             JOIN Jobs j ON a.job_id = j.id 
@@ -215,5 +215,46 @@ def analyze_resume():
         "education": education_found,
         "experience": experience_found
     })
+@app.route('/api/delete_history', methods=['POST'])
+@login_required
+def delete_history():
+    """Securely deletes selected analyses after verifying user password."""
+    data = request.json
+    analysis_ids = data.get('analysis_ids', [])
+    password = data.get('password', '')
+
+    # 1. Verify Password
+    if not check_password_hash(current_user.password_hash, password):
+        return jsonify({"status": "error", "message": "Incorrect password. Deletion denied."}), 403
+
+    if not analysis_ids:
+        return jsonify({"status": "error", "message": "No records selected."}), 400
+
+    # 2. Execute Secure Deletion
+    conn = get_db_connection()
+    if conn:
+        cursor = conn.cursor()
+        try:
+            # Ensure the user only deletes their own records by joining the Resumes table
+            format_strings = ','.join(['%s'] * len(analysis_ids))
+            query = f"""
+                DELETE a FROM Analysis a
+                JOIN Resumes r ON a.resume_id = r.id
+                WHERE a.id IN ({format_strings}) AND r.user_id = %s
+            """
+            # Combine the IDs and the current_user ID into a single tuple
+            params = tuple(analysis_ids) + (current_user.id,)
+            
+            cursor.execute(query, params)
+            conn.commit()
+            return jsonify({"status": "success"})
+        except Exception as e:
+            return jsonify({"status": "error", "message": str(e)}), 500
+        finally:
+            cursor.close()
+            conn.close()
+            
+    return jsonify({"status": "error", "message": "Database connection failed."}), 500
+
 if __name__ == '__main__':
     app.run(debug=True)

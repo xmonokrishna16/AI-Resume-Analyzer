@@ -83,3 +83,97 @@ function renderChart(score) {
         options: { cutout: '80%', responsive: true }
     });
 }
+
+// --- PDF Export Logic ---
+document.getElementById('download-pdf-btn').addEventListener('click', () => {
+    const dashboardElement = document.getElementById('dashboard-section');
+    const button = document.getElementById('download-pdf-btn');
+    const username = button.getAttribute('data-username').replace(/\s+/g, '_');
+
+    // 1. Temporarily hide the action buttons
+    const actionButtons = dashboardElement.querySelectorAll('button');
+    actionButtons.forEach(btn => btn.style.display = 'none');
+
+    // 2. Configure the PDF settings (with scrollY fix)
+    const opt = {
+        margin: 0.5,
+        filename: `${username}_AI_Resume_Report.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: {
+            scale: 2,
+            useCORS: true,
+            scrollY: 0  // <--- Forces the renderer to ignore your scroll position
+        },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+
+    // 3. Generate and save the PDF, then restore the buttons
+    html2pdf().set(opt).from(dashboardElement).save().then(() => {
+        actionButtons.forEach(btn => btn.style.display = 'block');
+    });
+});
+
+// --- Secure Deletion Logic ---
+const selectAllCheckbox = document.getElementById('select-all');
+const deleteCheckboxes = document.querySelectorAll('.delete-checkbox');
+const deleteBtn = document.getElementById('delete-selected-btn');
+const passwordModal = document.getElementById('password-modal');
+const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+
+// Show/Hide Delete Button based on selections
+function toggleDeleteButton() {
+    const anyChecked = Array.from(deleteCheckboxes).some(cb => cb.checked);
+    if (deleteBtn) deleteBtn.style.display = anyChecked ? 'inline-block' : 'none';
+}
+
+if (selectAllCheckbox) {
+    selectAllCheckbox.addEventListener('change', (e) => {
+        deleteCheckboxes.forEach(cb => cb.checked = e.target.checked);
+        toggleDeleteButton();
+    });
+}
+
+deleteCheckboxes.forEach(cb => cb.addEventListener('change', toggleDeleteButton));
+
+// Modal Controls
+if (deleteBtn) {
+    deleteBtn.addEventListener('click', () => passwordModal.style.display = 'flex');
+}
+
+if (cancelDeleteBtn) {
+    cancelDeleteBtn.addEventListener('click', () => {
+        passwordModal.style.display = 'none';
+        document.getElementById('delete-password').value = ''; // Clear password field
+    });
+}
+
+// Execute Deletion
+if (confirmDeleteBtn) {
+    confirmDeleteBtn.addEventListener('click', async () => {
+        const password = document.getElementById('delete-password').value;
+        if (!password) return alert("Password is required to delete records.");
+
+        const selectedIds = Array.from(deleteCheckboxes)
+            .filter(cb => cb.checked)
+            .map(cb => parseInt(cb.value));
+
+        try {
+            const response = await fetch('/api/delete_history', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ analysis_ids: selectedIds, password: password })
+            });
+
+            const data = await response.json();
+            if (data.status === 'success') {
+                location.reload(); // Refresh to show updated table
+            } else {
+                alert(data.message); // Show password error
+            }
+        } catch (error) {
+            console.error("Deletion error:", error);
+            alert("Something went wrong processing your request.");
+        }
+    });
+}
