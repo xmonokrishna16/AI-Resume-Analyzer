@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recruiter Portal - Bulk AI Analysis</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <div class="container" style="max-width: 1200px;">
+        <!-- Header -->
+        <header
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background: #1e293b; color: white; padding: 20px; border-radius: 8px;">
+            <div>
+                <h1 style="margin: 0; color: white;">Enterprise Recruiter Portal</h1>
+                <p style="margin: 5px 0 0 0; color: #94a3b8;">Welcome, <strong>{{ user.name }}</strong> | Bulk AI Resume
+                    Screening</p>
+            </div>
+            <a href="{{ url_for('logout') }}"
+                style="background: #ef4444; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: bold;">Log
+                Out</a>
+        </header>
+
+        <!-- Campaign Creation & Bulk Upload -->
+        <div class="card" style="border-top: 5px solid #2563eb;">
+            <h2>Launch New Screening Campaign</h2>
+            <form id="bulk-analyze-form" enctype="multipart/form-data">
+                <div class="form-row" style="display: flex; gap: 20px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Campaign / Job Title</label>
+                        <input type="text" name="campaign_title" required
+                            placeholder="e.g., Senior Python Developer Hiring Q3">
+                    </div>
+                    <div class="form-group" style="width: 200px;">
+                        <label>Min. Experience (Years)</label>
+                        <input type="number" name="min_experience" min="0" max="20" value="0">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Target Job Description & Core Requirements</label>
+                    <textarea name="job_desc" rows="5" required
+                        placeholder="Paste the full job description here..."></textarea>
+                </div>
+
+                <div class="form-group"
+                    style="background: #f8fafc; padding: 20px; border: 2px dashed #cbd5e1; border-radius: 8px; text-align: center;">
+                    <label style="font-size: 1.1em; color: #334155; margin-bottom: 10px; display: block;">📂 Upload
+                        Candidate Resumes (Bulk)</label>
+                    <p style="font-size: 0.9em; color: #64748b; margin-top: 0;">Select multiple PDF or DOCX files at
+                        once.</p>
+                    <input type="file" name="resumes" accept=".pdf,.docx" multiple required
+                        style="margin: 0 auto; max-width: 300px;">
+                </div>
+
+                <button type="submit" id="bulk-submit-btn"
+                    style="background: #2563eb; width: 100%; font-size: 1.1em; padding: 15px;">🚀 Run AI Batch
+                    Analysis</button>
+            </form>
+            <div id="bulk-loading"
+                style="display: none; text-align: center; padding: 20px; color: #2563eb; font-weight: bold;">
+                🧠 AI is analyzing batch... This may take a moment depending on the number of files.
+            </div>
+        </div>
+
+        <!-- Bulk Results Dashboard (Hidden until processing completes) -->
+        <div id="bulk-results-section" class="card"
+            style="display: none; margin-top: 30px; border-top: 5px solid #10b981;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0;">Ranked Candidates</h2>
+                <button id="export-csv-btn" style="background: #10b981;">📥 Export to Excel/CSV</button>
+            </div>
+
+            <table class="history-table" id="candidates-table">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Candidate File</th>
+                        <th>Match Score</th>
+                        <th>Experience</th>
+                        <th>Category</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="candidates-tbody">
+                    <!-- Dynamic rows will be inserted here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+
+</html>

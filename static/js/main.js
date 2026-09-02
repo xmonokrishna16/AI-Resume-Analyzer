@@ -238,4 +238,110 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // --- Recruiter Bulk Analysis Logic ---
+    const bulkAnalyzeForm = document.getElementById('bulk-analyze-form');
+
+    if (bulkAnalyzeForm) {
+        bulkAnalyzeForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const loadingDiv = document.getElementById('bulk-loading');
+            const resultsSection = document.getElementById('bulk-results-section');
+            const submitBtn = document.getElementById('bulk-submit-btn');
+            const tbody = document.getElementById('candidates-tbody');
+
+            loadingDiv.style.display = 'block';
+            submitBtn.disabled = true;
+            resultsSection.style.display = 'none';
+            tbody.innerHTML = ''; // Clear previous results
+
+            const formData = new FormData(bulkAnalyzeForm);
+
+            try {
+                const response = await fetch('/api/bulk_analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    // Populate Table
+                    data.results.forEach((candidate, index) => {
+                        let badgeColor = '#64748b'; // Default Grey
+                        if (candidate.category === 'High Skills & Exp') badgeColor = '#10b981'; // Green
+                        else if (candidate.category === 'High Skills') badgeColor = '#3b82f6'; // Blue
+                        else if (candidate.category === 'High Exp') badgeColor = '#f59e0b'; // Yellow
+                        else if (candidate.category === 'Needs Upskilling') badgeColor = '#ef4444'; // Red
+
+                        const row = `
+                            <tr>
+                                <td><strong>#${index + 1}</strong></td>
+                                <td>${candidate.file_name}</td>
+                                <td><strong>${candidate.match_score}%</strong></td>
+                                <td>${candidate.experience}</td>
+                                <td><span style="background: ${badgeColor}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.85em;">${candidate.category}</span></td>
+                                <td><button class="btn-secondary" style="padding: 5px 10px; margin: 0; font-size: 0.85em;">View Details</button></td>
+                            </tr>
+                        `;
+                        tbody.innerHTML += row;
+                    });
+
+                    resultsSection.style.display = 'block';
+                } else {
+                    alert("Error: " + data.error);
+                }
+            } catch (error) {
+                console.error("Bulk upload error:", error);
+                alert("Something went wrong processing the resumes.");
+            } finally {
+                loadingDiv.style.display = 'none';
+                submitBtn.disabled = false;
+            }
+        });
+    }
+    // --- CSV Export Logic for Recruiters ---
+    const exportCsvBtn = document.getElementById('export-csv-btn');
+    if (exportCsvBtn) {
+        exportCsvBtn.addEventListener('click', () => {
+            const table = document.getElementById('candidates-table');
+            if (!table) return;
+
+            let csvContent = "";
+            const rows = table.querySelectorAll('tr');
+
+            rows.forEach((row, index) => {
+                const cols = row.querySelectorAll('th, td');
+                const rowData = [];
+
+                cols.forEach((col, colIndex) => {
+                    // Skip the "Action" column (the last column with the button)
+                    if (colIndex !== cols.length - 1) {
+                        // Clean up the text: remove existing commas and newlines to prevent CSV breaking
+                        let text = col.innerText.replace(/,/g, '').replace(/(\r\n|\n|\r)/gm, ' ').trim();
+                        rowData.push(text);
+                    }
+                });
+
+                csvContent += rowData.join(",") + "\n";
+            });
+
+            // Create a Blob and trigger the download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+
+            // Generate a filename with today's date
+            const dateStr = new Date().toISOString().split('T')[0];
+            link.setAttribute("download", `Recruiter_Shortlist_${dateStr}.csv`);
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+    }
+
+
 });

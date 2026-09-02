@@ -3,43 +3,227 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Register - AI Resume Analyzer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account - AI Resume Engine</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .auth-container {
+            max-width: 540px;
+            margin: 40px auto;
+            background: #ffffff;
+            padding: 30px 35px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .tab-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            background: #f1f5f9;
+            padding: 5px;
+            border-radius: 8px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            font-size: 0.95em;
+            font-weight: 600;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+            background: #ffffff;
+            color: #2563eb;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .flash-msg {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+        }
+    </style>
 </head>
 
 <body>
-    <div class="container">
-        <div class="card" style="max-width: 400px; margin: 50px auto;">
-            <h2 style="text-align: center;">Create an Account</h2>
+    <div class="auth-container">
+        <h2 style="text-align: center; margin-top: 0; color: #1e293b;">Join AI Resume Engine</h2>
+        <p style="text-align: center; color: #64748b; margin-bottom: 20px; font-size: 0.95em;">Select your account type
+            to get started</p>
 
-            {% with messages = get_flashed_messages() %}
-            {% if messages %}
-            {% for message in messages %}
-            <p style="color: red; text-align: center;">{{ message }}</p>
-            {% endfor %}
-            {% endif %}
-            {% endwith %}
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        {% for message in messages %}
+        <div class="flash-msg">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
 
-            <form action="{{ url_for('register') }}" method="POST">
-                <div class="form-group">
-                    <label>Full Name</label>
-                    <input type="text" name="name" required>
-                </div>
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" name="email" required>
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" name="password" required>
-                </div>
-                <button type="submit">Register</button>
-            </form>
-            <p style="text-align: center; margin-top: 20px;">
-                Already have an account? <a href="{{ url_for('login') }}">Log in here</a>
-            </p>
+        <!-- Role Switcher Tabs -->
+        <div class="tab-group">
+            <button type="button" class="tab-btn active" id="tab-individual" onclick="switchTab('individual')">👤
+                Candidate / Student</button>
+            <button type="button" class="tab-btn" id="tab-business" onclick="switchTab('business')">🏢 Business /
+                Recruiter</button>
         </div>
+
+        <form action="{{ url_for('register') }}" method="POST" id="registration-form">
+            <!-- Hidden role input -->
+            <input type="hidden" name="role" id="role-input" value="individual">
+
+            <!-- Common Fields -->
+            <div class="form-group">
+                <label id="name-label">Full Name</label>
+                <input type="text" name="name" required placeholder="e.g. John Doe">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" name="email" required placeholder="you@example.com">
+                </div>
+                <div class="form-group">
+                    <label>WhatsApp / Phone</label>
+                    <input type="tel" name="phone_whatsapp" required placeholder="+91 9876543210">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="password" required placeholder="Create a secure password">
+            </div>
+
+            <div class="form-group">
+                <label>Address / Location</label>
+                <input type="text" name="address" placeholder="City, State, Country">
+            </div>
+
+            <!-- Individual Fields -->
+            <div id="individual-fields">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Education Level</label>
+                        <select name="education_level">
+                            <option value="B.Tech / B.E.">B.Tech / B.E.</option>
+                            <option value="B.Sc / BCA">B.Sc / BCA</option>
+                            <option value="M.Tech / M.E.">M.Tech / M.E.</option>
+                            <option value="MCA / M.Sc">MCA / M.Sc</option>
+                            <option value="Diploma">Diploma</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Graduation Year</label>
+                        <input type="number" name="graduation_year" min="2000" max="2035" placeholder="2026">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Institution / College</label>
+                        <input type="text" name="institution_name" placeholder="University / College name">
+                    </div>
+                    <div class="form-group">
+                        <label>Field of Study / Branch</label>
+                        <input type="text" name="field_of_study" placeholder="e.g. Computer Science">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Business Fields (Hidden by default) -->
+            <div id="business-fields" style="display: none;">
+                <div class="form-group">
+                    <label>Organization / Company Name</label>
+                    <input type="text" name="company_name" placeholder="Company or College name">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Business Type</label>
+                        <select name="business_type">
+                            <option value="University / College Placement Cell">University / College Placement Cell
+                            </option>
+                            <option value="Staffing & Recruitment Agency">Staffing & Recruitment Agency</option>
+                            <option value="IT & Software Company">IT & Software Company</option>
+                            <option value="Finance & Banking">Finance & Banking</option>
+                            <option value="Healthcare & Biotech">Healthcare & Biotech</option>
+                            <option value="E-Commerce & Retail">E-Commerce & Retail</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Company Size</label>
+                        <select name="company_size">
+                            <option value="1-10 Employees">1-10 Employees</option>
+                            <option value="11-50 Employees">11-50 Employees</option>
+                            <option value="51-200 Employees">51-200 Employees</option>
+                            <option value="201-1000 Employees">201-1000 Employees</option>
+                            <option value="1000+ Employees">1000+ Employees</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Official Website (Optional)</label>
+                    <input type="url" name="website" placeholder="https://yourcompany.com">
+                </div>
+            </div>
+
+            <button type="submit" style="width: 100%; margin-top: 15px; padding: 12px; font-size: 1em;">Create
+                Account</button>
+        </form>
+
+        <p style="text-align: center; margin-top: 20px; font-size: 0.9em; color: #64748b;">
+            Already have an account? <a href="{{ url_for('login') }}"
+                style="color: #2563eb; text-decoration: none; font-weight: 600;">Log In</a>
+        </p>
     </div>
+
+    <script>
+        function switchTab(role) {
+            const roleInput = document.getElementById('role-input');
+            const tabInd = document.getElementById('tab-individual');
+            const tabBus = document.getElementById('tab-business');
+            const indFields = document.getElementById('individual-fields');
+            const busFields = document.getElementById('business-fields');
+            const nameLabel = document.getElementById('name-label');
+
+            roleInput.value = role;
+
+            if (role === 'individual') {
+                tabInd.classList.add('active');
+                tabBus.classList.remove('active');
+                indFields.style.display = 'block';
+                busFields.style.display = 'none';
+                nameLabel.innerText = 'Full Name';
+            } else {
+                tabBus.classList.add('active');
+                tabInd.classList.remove('active');
+                busFields.style.display = 'block';
+                indFields.style.display = 'none';
+                nameLabel.innerText = 'Contact Person Name';
+            }
+        }
+    </script>
 </body>
 
 </html>
