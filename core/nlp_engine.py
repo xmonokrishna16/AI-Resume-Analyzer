@@ -94,19 +94,20 @@ def check_ats_formatting(text):
     return {"word_count": word_count, "status": status, "message": message}
 
 def extract_contact_info(text):
-    """Extracts email, phone, and LinkedIn presence using Regex."""
+    """Extracts email, phone, and LinkedIn presence using highly forgiving fallback methods."""
     if not text:
         return {"email": False, "phone": False, "linkedin": False}
     
     text_lower = text.lower()
+    compact_text = re.sub(r'\s+', '', text_lower)
     
-    # Standard email regex
-    has_email = bool(re.search(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', text))
+    # Check for regex pattern OR the '@' symbol OR the literal words "email" / "gmail"
+    has_email = bool(re.search(r'[\w\.-]+@[\w\.-]+', compact_text)) or ('@' in compact_text) or ('email' in text_lower) or ('gmail' in text_lower)
     
-    # Phone regex (matches formats like (123) 456-7890, 123-456-7890, +91 9876543210, etc.)
-    has_phone = bool(re.search(r'(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}', text))
+    # Phone regex fallback
+    has_phone = bool(re.search(r'(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}', compact_text)) or ('phone' in text_lower)
     
-    # LinkedIn regex
-    has_linkedin = bool(re.search(r'linkedin\.com/in/[a-zA-Z0-9_-]+', text_lower))
+    # LinkedIn regex fallback
+    has_linkedin = bool(re.search(r'linkedin\.com', compact_text)) or ('linkedin' in text_lower)
     
     return {"email": has_email, "phone": has_phone, "linkedin": has_linkedin}

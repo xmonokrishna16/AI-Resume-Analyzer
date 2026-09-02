@@ -1,5 +1,6 @@
 import os
 import json
+import re
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -215,15 +216,17 @@ def analyze_resume():
         resume_id = default_res['id']
         using_default = True
 
-    # 3. NLP Skill Extraction & Matching
-    resume_skills = extract_skills(raw_text)
-    job_skills = extract_skills(job_description.lower())
-    match_score, missing_skills = calculate_match(resume_skills, job_skills)
-    roadmap = generate_roadmap(missing_skills)
-
     # --- NEW: Extract Education & Experience ---
     education_found = extract_education(raw_text)
     experience_found = extract_experience(raw_text)
+    
+    # --- UPDATED: Call the weighted matcher ---
+    resume_skills = extract_skills(raw_text)
+    job_skills = extract_skills(job_description.lower())
+    match_score, missing_skills, breakdown = calculate_match(resume_skills, job_skills, education_found, experience_found, job_description)
+    roadmap = generate_roadmap(missing_skills)
+
+    
     
     # --- NEW: ATS Formatting & Contact Checks ---
     ats_health = check_ats_formatting(raw_text)
@@ -370,14 +373,15 @@ def bulk_analyze():
 
             # Analyze Text
             resume_skills = extract_skills(raw_text)
-            resume_exp_text = extract_experience(raw_text) # e.g., "3 Years"
+            resume_edu = extract_education(raw_text) # <-- Added Education Extraction
+            resume_exp_text = extract_experience(raw_text) 
             
             # Parse numerical experience for logic
-            import re
             exp_match = re.search(r'(\d+)', resume_exp_text)
             exp_years = int(exp_match.group(1)) if exp_match else 0
 
-            match_score, missing_skills = calculate_match(resume_skills, job_skills)
+            # --- UPDATED: Call the weighted matcher ---
+            match_score, missing_skills, breakdown = calculate_match(resume_skills, job_skills, resume_edu, resume_exp_text, job_description)
             
             # 3. Categorization Logic
             if match_score >= 70 and exp_years >= min_experience:
