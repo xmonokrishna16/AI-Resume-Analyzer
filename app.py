@@ -13,6 +13,7 @@ from core.parser import extract_text_from_pdf, extract_text_from_docx
 from core.nlp_engine import extract_skills, extract_education, extract_experience, check_ats_formatting, extract_contact_info
 from core.matcher import calculate_match
 from core.roadmap import generate_roadmap
+from core.mcq_generator import generate_mcqs
 
 app = Flask(__name__)
 app.secret_key = "super_secret_key_change_this_later"  # Required for session encryption
@@ -115,7 +116,8 @@ def login():
             login_user(user)
             if user.role == 'business':
                 return redirect(url_for('recruiter_dashboard'))
-            return redirect(url_for('home'))
+            # UPDATED: Redirect standard users to the new Master Dashboard
+            return redirect(url_for('dashboard'))
         else:
             flash('Invalid email or password.')
 
@@ -136,12 +138,38 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
-# --- CORE APPLICATION ROUTES ---
+# --- NEW MASTER DASHBOARD & FEATURE ROUTES ---
 
-@app.route('/')
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    """Central hub showing all available Skill Bridge AI services."""
+    return render_template('dashboard.html')
+
+@app.route('/mock-interview')
+@login_required
+def mock_interview():
+    """Renders the mock interview generation module."""
+    return render_template('mock_interview.html')
+
+@app.route('/mcq-generator')
+@login_required
+def mcq_generator_view():
+    """Renders the study material upload and MCQ test module."""
+    return render_template('mcq_upload.html')
+
+@app.route('/analytics')
+@login_required
+def analytics_view():
+    """Renders user performance history and tracking charts."""
+    return render_template('analytics.html')
+
+# --- CORE APPLICATION ROUTES (Existing Analyzer) ---
+
+@app.route('/resume-analyzer')
 @login_required
 def home():
-    """Renders the main dashboard and fetches user analysis history."""
+    """Renders the resume analyzer module and fetches analysis history."""
     conn = get_db_connection()
     history = []
     default_resume = None
@@ -168,6 +196,7 @@ def home():
         cursor.close()
         conn.close()
         
+    # Still rendering index.html for the specific resume analyzer view
     return render_template('index.html', user=current_user, history=history, default_resume=default_resume)
 
 @app.route('/api/analyze', methods=['POST'])
@@ -216,23 +245,19 @@ def analyze_resume():
         resume_id = default_res['id']
         using_default = True
 
-    # --- NEW: Extract Education & Experience ---
+    # --- Extract Education & Experience ---
     education_found = extract_education(raw_text)
     experience_found = extract_experience(raw_text)
     
-    # --- UPDATED: Call the weighted matcher ---
+    # --- Call the weighted matcher ---
     resume_skills = extract_skills(raw_text)
     job_skills = extract_skills(job_description.lower())
     match_score, missing_skills, breakdown = calculate_match(resume_skills, job_skills, education_found, experience_found, job_description)
     roadmap = generate_roadmap(missing_skills)
 
-    
-    
-    # --- NEW: ATS Formatting & Contact Checks ---
+    # --- ATS Formatting & Contact Checks ---
     ats_health = check_ats_formatting(raw_text)
     contact_info = extract_contact_info(raw_text)
-
-
 
     # 4. Save to Database
     try:
@@ -276,6 +301,7 @@ def analyze_resume():
         "ats_health": ats_health,
         "contact_info": contact_info
     })
+
 @app.route('/api/delete_history', methods=['POST'])
 @login_required
 def delete_history():
@@ -373,14 +399,14 @@ def bulk_analyze():
 
             # Analyze Text
             resume_skills = extract_skills(raw_text)
-            resume_edu = extract_education(raw_text) # <-- Added Education Extraction
+            resume_edu = extract_education(raw_text) 
             resume_exp_text = extract_experience(raw_text) 
             
             # Parse numerical experience for logic
             exp_match = re.search(r'(\d+)', resume_exp_text)
             exp_years = int(exp_match.group(1)) if exp_match else 0
 
-            # --- UPDATED: Call the weighted matcher ---
+            # --- Call the weighted matcher ---
             match_score, missing_skills, breakdown = calculate_match(resume_skills, job_skills, resume_edu, resume_exp_text, job_description)
             
             # 3. Categorization Logic
@@ -421,6 +447,90 @@ def bulk_analyze():
     results.sort(key=lambda x: x['match_score'], reverse=True)
 
     return jsonify({"status": "success", "results": results})
+
+@app.route('/api/generate_mcq', methods=['POST'])
+@login_required
+def api_generate_mcq():
+    """Handles document upload, extracts text, and triggers AI MCQ generation."""
+    
+    file = request.files.get('study_material')
+    question_count = int(request.form.get('question_count', 20))
+    
+    if not file or file.filename == '':
+        return jsonify({"status": "error", "error": "No file selected."}), 400
+
+    filename = secure_filename(file.filename)
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    file.save(filepath)
+
+    raw_text = ""
+    try:
+        if filename.endswith('.pdf'):
+            raw_text = extract_text_from_pdf(filepath)
+        elif filename.endswith('.docx'):
+            raw_text = extract_text_from_docx(filepath)
+        else:
+            os.remove(filepath)
+            return jsonify({"status": "error", "error": "Unsupported format. Upload PDF or DOCX."}), 400
+    except Exception as e:
+        os.remove(filepath)
+        return jsonify({"status": "error", "error": f"Failed to parse document: {str(e)}"}), 500
+        
+    # Clean up file after extracting text
+    if os.path.exists(filepath):
+        os.remove(filepath)
+        
+    if not raw_text.strip():
+        return jsonify({"status": "error", "error": "Could not extract text from the document."}), 400
+
+    # Call the AI Generator
+    generated_questions = generate_mcqs(raw_text, question_count)
+    
+    if not generated_questions:
+        return jsonify({"status": "error", "error": "AI failed to generate questions. Please try again."}), 500
+
+    # For now, we return the questions to the frontend.
+    # In the next step, we will save this to the database and render the exam UI.
+    return jsonify({
+        "status": "success",
+        "questions": generated_questions
+    })
+
+@app.route('/api/save_mcq_result', methods=['POST'])
+@login_required
+def save_mcq_result():
+    """Stores user MCQ test performance for analytics."""
+    data = request.json or {}
+    total_questions = data.get('total_questions', 0)
+    score = data.get('score', 0)
+    test_title = data.get('title', 'Study Material Assessment')
+
+    if total_questions == 0:
+        return jsonify({"status": "error", "message": "Invalid test data."}), 400
+
+    percentage = round((score / total_questions) * 100, 2)
+
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"status": "error", "message": "Database connection failed."}), 500
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            """INSERT INTO mcq_tests (user_id, test_title, total_questions, score, percentage)
+               VALUES (%s, %s, %s, %s, %s)""",
+            (current_user.id, test_title, total_questions, score, percentage)
+        )
+        conn.commit()
+        return jsonify({"status": "success", "percentage": percentage})
+    except Exception as e:
+        print("Database error saving MCQ score:", e)
+        conn.rollback()
+        return jsonify({"status": "error", "message": str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
 
 
 if __name__ == '__main__':

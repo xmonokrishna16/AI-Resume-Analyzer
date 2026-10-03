@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCQ Generator - Skill Bridge AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .upload-container {
+            max-width: 800px;
+            margin: 40px auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+            color: #2563eb;
+            font-weight: 500;
+        }
+
+        /* Exam Area Styles */
+        #examArea {
+            display: none;
+        }
+
+        .question-card {
+            margin-bottom: 24px;
+            padding: 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+
+        .question-text {
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .option-label {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 12px;
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 10px 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            background: #f8fafc;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+
+        .option-label:hover {
+            background-color: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+
+        .option-label input[type="radio"] {
+            margin: 0 !important;
+            width: 18px !important;
+            height: 18px !important;
+            flex-shrink: 0;
+            accent-color: #2563eb;
+        }
+
+        .option-label span,
+        .option-label {
+            color: #1e293b;
+            font-size: 0.95rem;
+        }
+
+        .exam-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn-secondary {
+            background: #64748b;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+        }
+
+        /* Print Styles for PDF Generation */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+
+            #examArea,
+            #examArea * {
+                visibility: visible;
+            }
+
+            #examArea {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+
+            .exam-actions,
+            .navbar {
+                display: none !important;
+            }
+
+            .question-card {
+                border: none;
+                border-bottom: 1px solid #ccc;
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+
+<body class="dashboard-body">
+
+    <header class="navbar">
+        <a href="{{ url_for('dashboard') }}" class="brand-logo">
+            <div class="logo-icon">SB</div>
+            <div>Skill Bridge <span class="highlight">AI</span></div>
+        </a>
+        <div class="user-menu">
+            <a href="{{ url_for('dashboard') }}" class="btn-launch"
+                style="padding: 6px 12px; margin-right: 15px;">Back</a>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="upload-container">
+
+            <!-- Upload Setup Form -->
+            <div id="setupArea">
+                <h2>Generate MCQ Test</h2>
+                <p style="color: #64748b; margin-bottom: 24px;">Upload your study material (PDF or DOCX) to generate a
+                    custom multiple-choice exam.</p>
+
+                <form id="mcqForm">
+                    <div class="form-group">
+                        <label for="study_material">Upload Material (PDF/DOCX)</label>
+                        <input type="file" id="study_material" name="study_material" class="form-control"
+                            accept=".pdf,.docx" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Number of Questions</label>
+                        <div style="display: flex; gap: 20px; margin-top: 10px;">
+                            <label><input type="radio" name="question_count" value="20" checked> 20 Questions</label>
+                            <label><input type="radio" name="question_count" value="50"> 50 Questions</label>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-launch" style="width: 100%; border:none; cursor:pointer;">Generate
+                        Test</button>
+                </form>
+
+                <div id="loadingIndicator" class="loading-spinner">
+                    Analyzing document and generating questions... This may take a minute.
+                </div>
+            </div>
+
+            <!-- Dynamic Exam Area -->
+            <div id="examArea">
+                <h2>Your Custom Assessment</h2>
+                <div id="questionsContainer"></div>
+
+                <div class="exam-actions">
+                    <button id="btnSubmitTest" class="btn-launch" style="border:none; cursor:pointer;">Submit
+                        Answers</button>
+                    <button id="btnPrint" class="btn-secondary">Download as PDF / Print</button>
+                </div>
+
+                <div id="resultsArea" style="margin-top: 20px; font-weight: bold; font-size: 1.2rem; display: none;">
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        let currentQuestions = [];
+
+        document.getElementById('mcqForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+            const loading = document.getElementById('loadingIndicator');
+            const submitBtn = form.querySelector('button[type="submit"]');
+
+            loading.style.display = 'block';
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch('/api/generate_mcq', { method: 'POST', body: formData });
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    currentQuestions = data.questions;
+                    renderTest(currentQuestions);
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while generating the test.');
+            } finally {
+                loading.style.display = 'none';
+                submitBtn.disabled = false;
+            }
+        });
+
+        function renderTest(questions) {
+            document.getElementById('setupArea').style.display = 'none';
+            document.getElementById('examArea').style.display = 'block';
+
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = '';
+
+            questions.forEach((q, index) => {
+                const qDiv = document.createElement('div');
+                qDiv.className = 'question-card';
+                qDiv.id = `question-${index}`;
+
+                let optionsHtml = '';
+                q.options.forEach((opt, oIndex) => {
+                    optionsHtml += `
+                        <label class="option-label">
+                            <input type="radio" name="q${index}" value="${opt.replace(/"/g, '&quot;')}">
+                            <span>${opt}</span>
+                        </label>
+                    `;
+                });
+
+                qDiv.innerHTML = `
+                    <div class="question-text">${index + 1}. ${q.question}</div>
+                    ${optionsHtml}
+                    <div class="explanation" style="display: none; margin-top: 10px; color: #16a34a; font-size: 0.9rem;">
+                        <strong>Explanation:</strong> ${q.explanation}
+                    </div>
+                `;
+                container.appendChild(qDiv);
+            });
+        }
+
+        // Print / Download PDF trigger
+        document.getElementById('btnPrint').addEventListener('click', () => {
+            window.print();
+        });
+
+        // Basic Grading Logic
+        document.getElementById('btnSubmitTest').addEventListener('click', async () => {
+            let score = 0;
+
+            currentQuestions.forEach((q, index) => {
+                const selected = document.querySelector(`input[name="q${index}"]:checked`);
+                const qCard = document.getElementById(`question-${index}`);
+                const expDiv = qCard.querySelector('.explanation');
+
+                expDiv.style.display = 'block';
+
+                if (selected && selected.value.trim() === q.correct_answer.trim()) {
+                    score++;
+                    qCard.style.borderLeft = "5px solid #16a34a";
+                } else {
+                    qCard.style.borderLeft = "5px solid #dc2626";
+                }
+            });
+
+            const resultsArea = document.getElementById('resultsArea');
+            resultsArea.style.display = 'block';
+            const percent = Math.round((score / currentQuestions.length) * 100);
+            resultsArea.innerHTML = `You scored ${score} out of ${currentQuestions.length} (${percent}%)!`;
+
+            try {
+                await fetch('/api/save_mcq_result', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title: "Custom Study Material Test",
+                        total_questions: currentQuestions.length,
+                        score: score
+                    })
+                });
+            } catch (err) {
+                console.error("Failed to save score:", err);
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Skill Bridge AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body class="dashboard-body">
+
+    <!-- Top Navigation with Logo -->
+    <header class="navbar">
+        <a href="{{ url_for('dashboard') }}" class="brand-logo">
+            <div class="logo-icon">SB</div>
+            <div>Skill Bridge <span class="highlight">AI</span></div>
+        </a>
+        <div class="user-menu">
+            <span>Welcome, <strong>{{ current_user.username if current_user.is_authenticated else 'User'
+                    }}</strong></span>
+            <a href="{{ url_for('logout') }}" class="logout-link">Logout</a>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="welcome-header">
+            <h2>Services & Prep Tools</h2>
+            <p>Select a tool to assess skills, simulate interviews, or evaluate test readiness.</p>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- 1. Resume & ATS Analyzer -->
+            <div class="service-card">
+                <div>
+                    <span class="badge">Career</span>
+                    <h3>Resume & ATS Analysis</h3>
+                    <p>Score your resume against industry standards, find missing keywords, and get customized skill gap
+                        roadmaps.</p>
+                </div>
+                <a href="{{ url_for('home') }}" class="btn-launch">Analyze Resume</a>
+            </div>
+
+            <!-- 2. Mock Interview Generator -->
+            <div class="service-card">
+                <div>
+                    <span class="badge">Interview Prep</span>
+                    <h3>Mock Interview Generator</h3>
+                    <p>Generate foundational and role-specific interview questions based on your resume and target Job
+                        Description.</p>
+                </div>
+                <a href="{{ url_for('mock_interview') }}" class="btn-launch">Start Mock Prep</a>
+            </div>
+
+            <!-- 3. Study Material MCQ Test -->
+            <div class="service-card">
+                <div>
+                    <span class="badge">Self-Assessment</span>
+                    <h3>Exam & Training MCQ Generator</h3>
+                    <p>Upload study notes or official training material to generate 20 or 50 questions with an option to
+                        download a printable test paper PDF.</p>
+                </div>
+                <a href="{{ url_for('mcq_generator_view') }}" class="btn-launch">Generate Test</a>
+            </div>
+
+            <!-- 4. Performance Analytics -->
+            <div class="service-card">
+                <div>
+                    <span class="badge">Analytics</span>
+                    <h3>Progress & Analytics</h3>
+                    <p>Review historical scores, attempt breakdowns, readiness indicators, and performance trends over
+                        time.</p>
+                </div>
+                <a href="{{ url_for('analytics_view') }}" class="btn-launch">View Analytics</a>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>
