@@ -3,39 +3,160 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Login - AI Resume Analyzer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Skill Bridge AI</title>
+    <!-- Mapped to your Flask static folder -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
-    <div class="container">
-        <div class="card" style="max-width: 400px; margin: 50px auto;">
-            <h2 style="text-align: center;">Welcome Back</h2>
 
+    <main class="login-container">
+        <!-- Left Side: Hero Section -->
+        <section class="hero-section">
+            <div class="logo">
+                <span class="logo-badge">SB</span>
+                <span class="logo-text-black">Skill Bridge</span>
+                <span class="logo-text-blue">AI</span>
+            </div>
+
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    Unlock Your<br>Potential with<br>
+                    <span class="text-gradient">AI-Powered Tools</span>
+                </h1>
+                <p class="hero-desc">
+                    Learn, practice and grow with personalized<br>
+                    AI tools for your career.
+                </p>
+            </div>
+
+        </section>
+
+        <!-- Right Side: Login Form -->
+        <section class="form-section">
+            <div class="top-nav">
+                <!-- Connected to your Flask register route -->
+                <p>Don't have an account? <a href="{{ url_for('register') }}">Sign up <svg width="14" height="14"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M5 12h14"></path>
+                            <path d="m12 5 7 7-7 7"></path>
+                        </svg></a></p>
+            </div>
+
+            <div class="form-header">
+                <h2>Welcome Back</h2>
+                <p>Sign in to continue to Skill Bridge AI</p>
+            </div>
+
+            <!-- Flask Flash Messages Integrated into UI -->
             {% with messages = get_flashed_messages() %}
             {% if messages %}
-            {% for message in messages %}
-            <p style="color: red; text-align: center;">{{ message }}</p>
-            {% endfor %}
+            <div class="flash-messages">
+                {% for message in messages %}
+                <div class="flash-msg">{{ message }}</div>
+                {% endfor %}
+            </div>
             {% endif %}
             {% endwith %}
 
+            <div class="social-login">
+                <button type="button" class="social-btn">
+                    <img src="{{ url_for('static', filename='vectors/apple-logo-svgrepo-com.svg') }}" width="18"
+                        height="18" alt="">
+                    Continue with Apple
+                </button>
+                <button type="button" class="social-btn">
+                    <img src="{{ url_for('static', filename='vectors/google-icon-logo-svgrepo-com.svg') }}" width="18"
+                        height="18" alt="">
+                    Continue with Google
+                </button>
+            </div>
+
+            <div class="divider">or</div>
+
+            <!-- Connected to your Flask login route -->
             <form action="{{ url_for('login') }}" method="POST">
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" name="email" required>
+                <div class="input-group">
+                    <label class="input-label" for="email">Email</label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                        <!-- Added name="email" as requested by your original form -->
+                        <input type="email" id="email" name="email" class="form-input" placeholder="Enter your email"
+                            required>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" name="password" required>
+
+                <div class="input-group">
+                    <label class="input-label" for="password">Password</label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                        <!-- Added name="password" as requested by your original form -->
+                        <input type="password" id="password" name="password" class="form-input"
+                            placeholder="Enter your password" required>
+                        <button type="button" class="input-icon-right" id="toggle-password" aria-label="Show password"
+                            aria-controls="password" aria-pressed="false">
+                            <svg class="password-eye-off" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                aria-hidden="true">
+                                <path
+                                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
+                                </path>
+                                <line x1="1" y1="1" x2="23" y2="23"></line>
+                            </svg>
+                            <svg class="password-eye" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                aria-hidden="true" hidden>
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
-                <button type="submit">Log In</button>
+
+                <a href="#" class="forgot-pass">Forgot Password?</a>
+
+                <button type="submit" class="submit-btn">
+                    Log In
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 12h14"></path>
+                        <path d="m12 5 7 7-7 7"></path>
+                    </svg>
+                </button>
             </form>
-            <p style="text-align: center; margin-top: 20px;">
-                Don't have an account? <a href="{{ url_for('register') }}">Register here</a>
-            </p>
-        </div>
-    </div>
+
+            <div class="form-footer">
+                By continuing, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const passwordInput = document.getElementById('password');
+        const togglePasswordButton = document.getElementById('toggle-password');
+        const hiddenPasswordIcon = togglePasswordButton.querySelector('.password-eye-off');
+        const visiblePasswordIcon = togglePasswordButton.querySelector('.password-eye');
+
+        togglePasswordButton.addEventListener('click', () => {
+            const isPasswordHidden = passwordInput.type === 'password';
+            passwordInput.type = isPasswordHidden ? 'text' : 'password';
+            togglePasswordButton.setAttribute('aria-pressed', String(isPasswordHidden));
+            togglePasswordButton.setAttribute('aria-label', isPasswordHidden ? 'Hide password' : 'Show password');
+            hiddenPasswordIcon.hidden = isPasswordHidden;
+            visiblePasswordIcon.hidden = !isPasswordHidden;
+        });
+    </script>
 </body>
 
 </html>

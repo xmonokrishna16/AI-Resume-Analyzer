@@ -1,0 +1,598 @@
+.mock-interview-page {
+    min-height: 100vh;
+    margin: 0;
+    padding: 28px clamp(18px, 3.2vw, 48px) 40px;
+    background: #f8fafc url("../images/mock%20generater%20Background.png") center center / cover fixed no-repeat;
+    color: #334155;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.mock-interview-topbar {
+    display: flex;
+    width: 100%;
+    max-width: 1400px;
+    height: 52px;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 auto 24px;
+}
+
+.mock-interview-topbar .brand-logo {
+    font-size: 1.25rem;
+}
+
+.mock-interview-topbar .logo-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 13px;
+    font-size: 1.1rem;
+}
+
+.mock-interview-main {
+    width: 100%;
+    max-width: 1050px;
+    margin: 0 auto;
+}
+
+.mock-interview-card {
+    display: grid;
+    width: 100%;
+    min-height: 596px;
+    grid-template-columns: 315px minmax(0, 1fr);
+    overflow: hidden;
+    border-radius: 32px;
+    background: #fff;
+    box-shadow: 0 18px 38px rgba(73, 91, 188, 0.19);
+}
+
+.mock-interview-hero {
+    position: relative;
+    min-height: 596px;
+    overflow: hidden;
+    isolation: isolate;
+    background: linear-gradient(155deg, #1275f8 0%, #173dc8 48%, #2513a9 100%);
+}
+
+.mock-interview-hero-art {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+}
+
+.mock-interview-hero-copy {
+    position: absolute;
+    right: 16px;
+    bottom: 158px;
+    left: 16px;
+    color: #fff;
+}
+
+.mock-interview-hero-copy p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.88);
+    font-size: 0.88rem;
+    line-height: 1.4;
+}
+
+.mock-interview-hero-copy .mock-interview-hero-kicker {
+    font-size: 1.45rem;
+    line-height: 1.2;
+}
+
+.mock-interview-hero-copy h2 {
+    margin: 3px 0 8px;
+    color: #fff;
+    font-size: 1.48rem;
+    line-height: 1.2;
+}
+
+.mock-interview-hero-accent {
+    display: block;
+    width: 80px;
+    height: 3px;
+    margin-top: 16px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #c544ff, #24ddfa);
+}
+
+.mock-interview-benefits {
+    position: absolute;
+    right: 12px;
+    bottom: 52px;
+    left: 12px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+    color: #fff;
+    text-align: center;
+}
+
+.mock-interview-benefits > div {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.mock-interview-benefits svg {
+    width: 19px;
+    height: 19px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+}
+
+.mock-interview-benefits span {
+    font-size: 0.62rem;
+    line-height: 1.3;
+}
+
+.mock-interview-form-panel {
+    min-width: 0;
+    padding: 26px 32px 26px 34px;
+}
+
+.mock-interview-back {
+    display: inline-flex;
+    min-width: 98px;
+    height: 38px;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    padding: 0 15px;
+    border: 1px solid rgba(198, 202, 255, 0.8);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.62);
+    box-shadow: 0 5px 13px rgba(84, 83, 208, 0.12);
+    color: #6459f5;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.mock-interview-back:hover {
+    background: #fff;
+    box-shadow: 0 7px 16px rgba(84, 83, 208, 0.18);
+}
+
+.mock-interview-back svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+}
+
+.mock-interview-heading {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    margin-bottom: 53px;
+}
+
+.mock-interview-heading > div {
+    transform: translateY(10px);
+}
+
+.mock-interview-heading-icon {
+    display: grid;
+    width: 42px;
+    height: 42px;
+    align-self: flex-start;
+    flex: 0 0 42px;
+    margin-top: 3px;
+    place-items: center;
+    border-radius: 12px;
+    background: linear-gradient(145deg, #9862ff, #5243eb);
+    box-shadow: 0 7px 14px rgba(99, 75, 235, 0.25);
+    color: #fff;
+    font-size: 1.55rem;
+}
+
+.mock-interview-heading h1 {
+    margin: 0;
+    color: #101943;
+    font-size: 1.4rem;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.mock-interview-heading p {
+    margin: 10px 0 0;
+    color: #17234a;
+    font-size: 0.76rem;
+}
+
+.mock-interview-card h2 {
+    margin: 18px 0 20px;
+    color: #334155;
+    font-size: 1.4rem;
+    line-height: 1.3;
+}
+
+.mock-interview-hero .mock-interview-hero-copy h2 {
+    color: #fff;
+}
+
+.mock-interview-form .form-group {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    align-items: start;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.mock-interview-form .form-group:last-of-type {
+    margin-bottom: 14px;
+}
+
+.mock-interview-field-icon {
+    display: grid;
+    width: 26px;
+    height: 26px;
+    margin-top: 1px;
+    place-items: center;
+    border-radius: 50%;
+    background: #f0f1ff;
+    color: #111b46;
+}
+
+.mock-interview-field-icon svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+}
+
+.mock-interview-field-content {
+    min-width: 0;
+}
+
+.mock-interview-form label {
+    display: block;
+    margin: 3px 0 5px;
+    color: #111b46;
+    font-size: 0.76rem;
+    font-weight: 700;
+}
+
+.mock-interview-form .form-control {
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    padding: 8px 12px;
+    border: 1px solid #dfe1ff;
+    border-radius: 15px;
+    background: linear-gradient(110deg, #fafaff, #fff);
+    color: #17234a;
+    font: inherit;
+    font-size: 0.76rem;
+    box-shadow: 0 1px 3px rgba(86, 82, 205, 0.05);
+}
+
+.mock-interview-form .form-control:focus {
+    border-color: #8c82ff;
+    outline: 3px solid rgba(120, 100, 255, 0.12);
+}
+
+.mock-interview-form textarea.form-control {
+    min-height: 92px;
+    resize: vertical;
+}
+
+.mock-interview-form input[type="file"].form-control {
+    min-height: 42px;
+    padding: 5px 8px;
+}
+
+.mock-interview-form input[type="file"]::file-selector-button {
+    margin-right: 8px;
+    padding: 5px 9px;
+    border: 0;
+    border-radius: 12px;
+    background: #e6e7ff;
+    color: #17234a;
+    font: inherit;
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.mock-interview-form input[type="number"].form-control {
+    min-height: 44px;
+}
+
+.mock-interview-start {
+    display: flex;
+    width: 100%;
+    min-height: 46px;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    padding: 9px 16px;
+    border: 0;
+    border-radius: 15px;
+    background: linear-gradient(105deg, #1765f6, #9138f5);
+    color: #fff;
+    font: inherit;
+    font-size: 0.76rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 7px 14px rgba(57, 91, 238, 0.28);
+}
+
+.mock-interview-start svg {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+}
+
+.mock-interview-start:hover {
+    background: linear-gradient(105deg, #1058e6, #8127e8);
+}
+
+.mock-interview-start:disabled {
+    cursor: wait;
+    opacity: 0.7;
+}
+
+.mock-interview-loading {
+    display: none;
+    margin-top: 12px;
+    color: #5146e5;
+    font-size: 0.82rem;
+    font-weight: 500;
+    text-align: center;
+}
+
+.mock-interview-card #listArea,
+.mock-interview-card #interactiveArea {
+    display: none;
+}
+
+.mock-interview-result-heading {
+    margin-bottom: 22px;
+}
+
+.mock-interview-result-heading h2 {
+    margin-top: 18px;
+}
+
+.mock-interview-result-heading p {
+    margin: 8px 0 0;
+    color: #64748b;
+    line-height: 1.5;
+}
+
+.mock-interview-actions {
+    margin-bottom: 20px;
+}
+
+.mock-interview-qa {
+    margin-bottom: 20px;
+    padding: 20px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #f8fafc;
+}
+
+.mock-interview-question {
+    margin-bottom: 15px;
+    color: #0f172a;
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+.mock-interview-advice {
+    display: none;
+    margin-top: 15px;
+    padding: 15px;
+    border-left: 4px solid #0284c7;
+    border-radius: 4px;
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.mock-interview-reveal,
+.mock-interview-secondary {
+    width: auto;
+    margin-right: 8px;
+    padding: 8px 12px;
+    border: 0;
+    border-radius: 6px;
+    background: #cbd5e1;
+    color: #334155;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.mock-interview-reveal:hover,
+.mock-interview-secondary:hover {
+    background: #b8c5d6;
+}
+
+.mock-interview-end-session {
+    margin-top: 15px;
+}
+
+.mock-interview-chat {
+    height: 400px;
+    overflow-y: auto;
+    margin: 22px 0 15px;
+    padding: 15px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #f8fafc;
+}
+
+.mock-interview-message-ai,
+.mock-interview-message-user {
+    max-width: 85%;
+    margin-bottom: 15px;
+    padding: 12px;
+    border-radius: 8px;
+    line-height: 1.5;
+}
+
+.mock-interview-message-ai {
+    border-radius: 8px 8px 8px 0;
+    background: #e0f2fe;
+}
+
+.mock-interview-message-user {
+    margin-left: auto;
+    border-radius: 8px 8px 0 8px;
+    background: #dcfce3;
+    text-align: right;
+}
+
+.mock-interview-chat-input {
+    display: flex;
+    gap: 10px;
+}
+
+.mock-interview-chat-input .form-control {
+    min-width: 0;
+    flex: 1;
+}
+
+.mock-interview-chat-input .mock-interview-start {
+    width: auto;
+    min-width: 80px;
+}
+
+.mock-interview-card button:focus-visible,
+.mock-interview-card input:focus-visible,
+.mock-interview-card select:focus-visible,
+.mock-interview-card textarea:focus-visible,
+.mock-interview-back:focus-visible {
+    outline: 3px solid rgba(59, 130, 246, 0.28);
+    outline-offset: 2px;
+}
+
+@media print {
+    body * {
+        visibility: hidden;
+    }
+
+    #listArea,
+    #listArea * {
+        visibility: visible;
+    }
+
+    #listArea {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+    }
+
+    .mock-interview-hero,
+    .mock-interview-reveal,
+    .mock-interview-secondary {
+        display: none !important;
+    }
+
+    .mock-interview-advice {
+        display: block !important;
+    }
+}
+
+@media (max-width: 760px) {
+    .mock-interview-page {
+        padding: 18px 14px;
+    }
+
+    .mock-interview-topbar {
+        height: 44px;
+        margin-bottom: 18px;
+    }
+
+    .mock-interview-topbar .brand-logo {
+        gap: 8px;
+        font-size: 1.05rem;
+    }
+
+    .mock-interview-topbar .logo-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 11px;
+        font-size: 1rem;
+    }
+
+    .mock-interview-back {
+        min-width: 92px;
+        height: 38px;
+        gap: 6px;
+        padding: 0 12px;
+        font-size: 0.78rem;
+    }
+
+    .mock-interview-card {
+        grid-template-columns: minmax(0, 1fr);
+        border-radius: 24px;
+    }
+
+    .mock-interview-hero {
+        min-height: 320px;
+    }
+
+    .mock-interview-hero-copy {
+        bottom: 106px;
+    }
+
+    .mock-interview-benefits {
+        bottom: 14px;
+    }
+
+    .mock-interview-form-panel {
+        padding: 28px 22px 22px;
+    }
+
+    .mock-interview-heading {
+        gap: 12px;
+        margin-bottom: 26px;
+    }
+
+    .mock-interview-heading > div {
+        transform: none;
+    }
+
+    .mock-interview-heading-icon {
+        margin-top: 0;
+    }
+
+    .mock-interview-heading p {
+        margin-top: 6px;
+    }
+
+    .mock-interview-heading h1 {
+        font-size: 1.25rem;
+    }
+}
+
+@media (max-width: 420px) {
+    .mock-interview-heading h1 {
+        font-size: 1.15rem;
+    }
+
+    .mock-interview-heading p {
+        font-size: 0.7rem;
+    }
+
+    .mock-interview-form-panel {
+        padding-right: 16px;
+        padding-left: 16px;
+    }
+}

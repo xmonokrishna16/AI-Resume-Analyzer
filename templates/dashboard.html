@@ -5,76 +5,214 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Skill Bridge AI</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 </head>
 
-<body class="dashboard-body">
+<body class="dashboard-page">
+    {% set display_name = current_user.name if current_user.is_authenticated else 'Guest' %}
+    <div class="dashboard-shell">
+        <aside class="sidebar">
+            <a class="brand" href="{{ url_for('dashboard') }}" aria-label="Skill Bridge AI home">
+                <span class="brand-mark">SB</span>
+                <span class="brand-copy">
+                    <strong>Skill Bridge <span>AI</span></strong>
+                    <small>Learn · Practice · Grow</small>
+                </span>
+            </a>
 
-    <!-- Top Navigation with Logo -->
-    <header class="navbar">
-        <a href="{{ url_for('dashboard') }}" class="brand-logo">
-            <div class="logo-icon">SB</div>
-            <div>Skill Bridge <span class="highlight">AI</span></div>
-        </a>
-        <div class="user-menu">
-            <span>Welcome, <strong>{{ current_user.username if current_user.is_authenticated else 'User'
-                    }}</strong></span>
-            <a href="{{ url_for('logout') }}" class="logout-link">Logout</a>
-        </div>
-    </header>
+            <nav class="side-nav" aria-label="Main navigation">
+                <a class="nav-link active" href="{{ url_for('dashboard') }}" aria-current="page">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>
+                    <span>Home</span>
+                </a>
+                <a class="nav-link" href="#tools">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 7 3-3 3 3-3 3zM4 20l9-9M5 6l13 13M4 4l4 4m8 8 4 4M4 14l6 6m4-16 6 6"/></svg>
+                    <span>Tools</span>
+                </a>
+                <a class="nav-link" href="{{ url_for('home') }}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9m5 10V5m6 14v-7m5 7V3M2 21h20"/></svg>
+                    <span>Resume Analyzer</span>
+                </a>
+                <a class="nav-link" href="{{ url_for('mock_interview') }}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z"/></svg>
+                    <span>Interviews</span>
+                </a>
+                <a class="nav-link" href="{{ url_for('mcq_generator_view') }}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8m-8 4h8"/></svg>
+                    <span>Resources</span>
+                </a>
+            </nav>
 
-    <main class="container">
-        <div class="welcome-header">
-            <h2>Services & Prep Tools</h2>
-            <p>Select a tool to assess skills, simulate interviews, or evaluate test readiness.</p>
-        </div>
-
-        <div class="dashboard-grid">
-            <!-- 1. Resume & ATS Analyzer -->
-            <div class="service-card">
-                <div>
-                    <span class="badge">Career</span>
-                    <h3>Resume & ATS Analysis</h3>
-                    <p>Score your resume against industry standards, find missing keywords, and get customized skill gap
-                        roadmaps.</p>
+            <div class="sidebar-bottom">
+                <div class="upgrade-card">
+                    <span class="upgrade-rocket" aria-hidden="true">🚀</span>
+                    <strong>Keep growing</strong>
+                    <p>Build skills and boost your career with AI-powered practice.</p>
+                    <a href="#tools" class="upgrade-link">Explore tools <span aria-hidden="true">→</span></a>
                 </div>
-                <a href="{{ url_for('home') }}" class="btn-launch">Analyze Resume</a>
+                <a class="logout-link" href="{{ url_for('logout') }}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17l5-5-5-5m5 5H3m9-9h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/></svg>
+                    Log out
+                </a>
+                <p class="sidebar-copyright">&copy; 2026 Skill Bridge AI<br>All rights reserved.</p>
             </div>
+        </aside>
 
-            <!-- 2. Mock Interview Generator -->
-            <div class="service-card">
-                <div>
-                    <span class="badge">Interview Prep</span>
-                    <h3>Mock Interview Generator</h3>
-                    <p>Generate foundational and role-specific interview questions based on your resume and target Job
-                        Description.</p>
+        <main class="dashboard-main">
+            <header class="topbar">
+                <label class="search-box">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+                    <input id="tool-search" type="search" placeholder="Search tools, skills, or topics..."
+                        aria-label="Search tools, skills, or topics">
+                    <kbd>Ctrl K</kbd>
+                </label>
+                <div class="account-area">
+                    <span class="welcome-user">Welcome, <strong>{{ display_name }}</strong></span>
+                    <span class="avatar" aria-label="Account for {{ display_name }}">{{ display_name[:1]|upper }}</span>
                 </div>
-                <a href="{{ url_for('mock_interview') }}" class="btn-launch">Start Mock Prep</a>
-            </div>
+            </header>
 
-            <!-- 3. Study Material MCQ Test -->
-            <div class="service-card">
-                <div>
-                    <span class="badge">Self-Assessment</span>
-                    <h3>Exam & Training MCQ Generator</h3>
-                    <p>Upload study notes or official training material to generate 20 or 50 questions with an option to
-                        download a printable test paper PDF.</p>
-                </div>
-                <a href="{{ url_for('mcq_generator_view') }}" class="btn-launch">Generate Test</a>
-            </div>
+            <div class="dashboard-content">
+                <section class="hero-banner" aria-labelledby="hero-title">
+                    <img class="hero-art"
+                        src="{{ url_for('static', filename='images/dashboard Futuristic AI Laptop Workspace.png') }}"
+                        alt="">
+                    <div class="hero-copy">
+                        <span class="hero-eyebrow"><span aria-hidden="true">✦</span> Your AI-powered career companion</span>
+                        <h1 id="hero-title">Skill Bridge <span>AI</span></h1>
+                        <p>Unlock your potential with AI-powered tools for learning, interview prep, and career growth.</p>
+                        <div class="hero-actions">
+                            <a class="button button-primary" href="#tools">
+                                <span aria-hidden="true">✦</span> Explore tools <span aria-hidden="true">→</span>
+                            </a>
+                            <a class="button button-secondary" href="{{ url_for('mock_interview') }}">
+                                <span class="play-icon" aria-hidden="true">▶</span> Start interview prep
+                            </a>
+                        </div>
+                    </div>
+                </section>
 
-            <!-- 4. Performance Analytics -->
-            <div class="service-card">
-                <div>
-                    <span class="badge">Analytics</span>
-                    <h3>Progress & Analytics</h3>
-                    <p>Review historical scores, attempt breakdowns, readiness indicators, and performance trends over
-                        time.</p>
-                </div>
-                <a href="{{ url_for('analytics_view') }}" class="btn-launch">View Analytics</a>
+                <section class="tools-panel" id="tools" aria-labelledby="tools-title">
+                    <div class="section-heading">
+                        <div class="section-title-wrap">
+                            <span class="section-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                            </span>
+                            <div>
+                                <h2 id="tools-title">Our Tools &amp; Features</h2>
+                                <p>Everything you need to prepare for your next interview and grow your career.</p>
+                            </div>
+                        </div>
+                        <a class="view-all-link" href="{{ url_for('home') }}">View all tools <span aria-hidden="true">→</span></a>
+                    </div>
+
+                    <div class="tool-grid" id="tool-grid">
+                        <article class="tool-card" data-search="resume ats analysis career keywords skills gap roadmap">
+                            <span class="tool-icon icon-blue" aria-hidden="true">
+                                <svg viewBox="0 0 24 24"><path d="M10 4V3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1m-13 5h22M3 5h18a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/><path d="m8 15 2 2 5-5"/></svg>
+                            </span>
+                            <div class="tool-copy">
+                                <span class="tool-category category-blue">Career</span>
+                                <h3>Resume &amp; ATS Analysis</h3>
+                                <p>Score your resume against industry standards, find missing keywords, and get a personalized skill-gap roadmap.</p>
+                                <a class="tool-action" href="{{ url_for('home') }}">Analyze resume <span aria-hidden="true">→</span></a>
+                            </div>
+                            <span class="tool-art art-resume" aria-hidden="true">
+                                <svg viewBox="0 0 120 100"><path d="M27 12h42l22 22v52a6 6 0 0 1-6 6H27a6 6 0 0 1-6-6V18a6 6 0 0 1 6-6z"/><path d="M69 12v23h22M38 49h32M38 61h32M38 73h18"/><circle cx="83" cy="72" r="16"/><path d="m76 72 5 5 9-11"/></svg>
+                            </span>
+                        </article>
+
+                        <article class="tool-card" data-search="mock interview generator interview questions resume job description">
+                            <span class="tool-icon icon-green" aria-hidden="true">
+                                <svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z"/><path d="M8 12h.01M12 12h.01M16 12h.01"/></svg>
+                            </span>
+                            <div class="tool-copy">
+                                <span class="tool-category category-green">Interview prep</span>
+                                <h3>Mock Interview Generator</h3>
+                                <p>Practice foundational and role-specific questions tailored to your resume and target job description.</p>
+                                <a class="tool-action" href="{{ url_for('mock_interview') }}">Start mock prep <span aria-hidden="true">→</span></a>
+                            </div>
+                            <span class="tool-art art-interview" aria-hidden="true">
+                                <svg viewBox="0 0 120 100"><rect x="14" y="14" width="92" height="62" rx="9"/><path d="M46 88h28m-14-12v12"/><circle cx="60" cy="39" r="13"/><path d="M37 67c2-12 11-18 23-18s21 6 23 18"/></svg>
+                            </span>
+                        </article>
+
+                        <article class="tool-card" data-search="exam training mcq quiz generator study notes questions test pdf">
+                            <span class="tool-icon icon-purple" aria-hidden="true">
+                                <svg viewBox="0 0 24 24"><path d="M9 4h6m-7 2H5v15h14V6h-3"/><path d="m8 13 2 2 5-5m-7 8h8"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>
+                            </span>
+                            <div class="tool-copy">
+                                <span class="tool-category category-purple">Self-assessment</span>
+                                <h3>Exam &amp; Training MCQ Generator</h3>
+                                <p>Turn study notes and training material into practice questions and printable test papers.</p>
+                                <a class="tool-action" href="{{ url_for('mcq_generator_view') }}">Generate a test <span aria-hidden="true">→</span></a>
+                            </div>
+                            <span class="tool-art art-quiz" aria-hidden="true">
+                                <svg viewBox="0 0 120 100"><rect x="23" y="13" width="69" height="77" rx="7"/><path d="M39 34h36M39 50h22M39 66h27"/><path d="m77 58 7 7 17-20"/></svg>
+                            </span>
+                        </article>
+
+                        <article class="tool-card" data-search="progress analytics history resume score performance">
+                            <span class="tool-icon icon-green" aria-hidden="true">
+                                <svg viewBox="0 0 24 24"><path d="M4 19V9m5 10V5m6 14v-7m5 7V3M2 21h20"/></svg>
+                            </span>
+                            <div class="tool-copy">
+                                <span class="tool-category category-green">Your progress</span>
+                                <h3>Progress &amp; Analytics</h3>
+                                <p>Review your resume analysis history and track your career-readiness improvements over time.</p>
+                                <a class="tool-action" href="{{ url_for('home') }}">View resume history <span aria-hidden="true">→</span></a>
+                            </div>
+                            <span class="tool-art art-progress" aria-hidden="true">
+                                <svg viewBox="0 0 120 100"><path d="M15 82h91"/><rect x="24" y="57" width="14" height="25" rx="3"/><rect x="49" y="43" width="14" height="39" rx="3"/><rect x="74" y="28" width="14" height="54" rx="3"/><path d="m20 47 27-16 20 7 29-25m-1 0h-16m16 0v16"/></svg>
+                            </span>
+                        </article>
+                    </div>
+                    <p class="no-results" id="no-results" hidden>No tools match your search. Try another keyword.</p>
+                </section>
+
+                <section class="mission-banner" aria-label="Career growth">
+                    <span class="trophy" aria-hidden="true">🏆</span>
+                    <div class="mission-copy">
+                        <h2>Your Career Growth, Our Mission</h2>
+                        <p>Get started today and take the next step towards your dream career.</p>
+                    </div>
+                    <a href="{{ url_for('home') }}" class="button mission-button">Get started free <span aria-hidden="true">→</span></a>
+                </section>
+
+                <footer class="dashboard-footer">
+                    <span>&copy; 2026 Skill Bridge AI</span>
+                    <span>Learn · Practice · Grow</span>
+                    <a href="{{ url_for('logout') }}">Sign out</a>
+                </footer>
             </div>
-        </div>
-    </main>
+        </main>
+    </div>
+
+    <script>
+        const searchInput = document.getElementById('tool-search');
+        const toolCards = Array.from(document.querySelectorAll('.tool-card'));
+        const noResults = document.getElementById('no-results');
+
+        searchInput.addEventListener('input', () => {
+            const query = searchInput.value.trim().toLowerCase();
+            let visibleCards = 0;
+
+            toolCards.forEach((card) => {
+                const matches = `${card.dataset.search} ${card.textContent}`.toLowerCase().includes(query);
+                card.hidden = !matches;
+                if (matches) visibleCards += 1;
+            });
+
+            noResults.hidden = visibleCards > 0;
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+                event.preventDefault();
+                searchInput.focus();
+            }
+        });
+    </script>
 </body>
 
 </html>

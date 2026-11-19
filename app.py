@@ -7,6 +7,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 
 # Import AI & DB custom modules
+from core.interview_engine import generate_interview_questions, start_interactive_session, continue_interactive_session
 from core.db import get_db_connection
 from core.models import User
 from core.parser import extract_text_from_pdf, extract_text_from_docx
@@ -531,6 +532,132 @@ def save_mcq_result():
         cursor.close()
         conn.close()
 
+@app.route('/api/generate_interview_list', methods=['POST'])
+@login_required
+def api_generate_interview_list():
+    """Handles Mode 1: Static List Generation"""
+    file = request.files.get('resume')
+    job_desc = request.form.get('job_desc', '')
+    category = request.form.get('category', 'mixed')
+    question_count = int(request.form.get('question_count', 5))
+    
+    if not file: return jsonify({"error": "No resume uploaded."}), 400
+    
+    # Secure and read file (reusing your existing logic)
+    filename = secure_filename(file.filename)
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    file.save(filepath)
+    raw_text = extract_text_from_pdf(filepath) if filename.endswith('.pdf') else extract_text_from_docx(filepath)
+    os.remove(filepath)
+
+    result = generate_interview_questions(raw_text, job_desc, question_count, category)
+    if not result: return jsonify({"error": "Generation failed."}), 500
+
+    conn = get_db_connection()
+    if conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO mock_interviews (user_id, session_mode, category, job_description, session_data) VALUES (%s, %s, %s, %s, %s)",
+            (current_user.id, 'list', category, job_desc[:500], json.dumps(result))
+        )
+        conn.commit()
+        conn.close()
+
+    return jsonify({"status": "success", "questions": result})
+
+
+@app.route('/api/start_interactive_interview', methods=['POST'])
+@login_required
+def api_start_interactive_interview():
+    """Handles Mode 2: Chat Initialization"""
+    file = request.files.get('resume')
+    job_desc = request.form.get('job_desc', '')
+    category = request.form.get('category', 'mixed')
+    
+    if not file: return jsonify({"error": "No resume uploaded."}), 400
+    
+    filename = secure_filename(file.filename)
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    file.save(filepath)
+    raw_text = extract_text_from_pdf(filepath) if filename.endswith('.pdf') else extract_text_from_docx(filepath)
+    os.remove(filepath)
+
+    first_msg, history, sys_inst = start_interactive_session(raw_text, job_desc, category)
+    if not first_msg: return jsonify({"error": "Failed to start chat."}), 500
+
+    session_data = {
+        "system_instruction": sys_inst,
+        "history": history
+    }
+
+    conn = get_db_connection()
+    session_id = None
+    if conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO mock_interviews (user_id, session_mode, category, job_description, session_data) VALUES (%s, %s, %s, %s, %s)",
+            (current_user.id, 'interactive', category, job_desc[:500], json.dumps(session_data))
+        )
+        session_id = cursor.lastrowid
+        conn.commit()
+        conn.close()
+
+    return jsonify({"status": "success", "first_message": first_msg, "session_id": session_id})
+
+
+@app.route('/api/send_chat_message', methods=['POST'])
+@login_required
+def api_send_chat_message():
+    """Handles Mode 2: Ongoing Chat Messaging"""
+    data = request.json
+    session_id = data.get('session_id')
+    user_message = data.get('message')
+
+    if not session_id or not user_message:
+        return jsonify({"error": "Session ID and message are required."}), 400
+
+    conn = get_db_connection()
+    if not conn: 
+        return jsonify({"error": "Database error"}), 500
+    
+    cursor = None
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(
+            "SELECT session_data FROM mock_interviews WHERE id = %s AND user_id = %s", 
+            (session_id, current_user.id)
+        )
+        record = cursor.fetchone()
+        
+        if not record:
+            return jsonify({"error": "Session not found."}), 404
+
+        session_data = json.loads(record['session_data'])
+        sys_inst = session_data['system_instruction']
+        history = session_data['history']
+
+        ai_reply, updated_history = continue_interactive_session(sys_inst, history, user_message)
+        
+        if not ai_reply:
+            return jsonify({"error": "AI failed to respond."}), 500
+
+        # Update DB with new history
+        session_data['history'] = updated_history
+        cursor.execute(
+            "UPDATE mock_interviews SET session_data = %s WHERE id = %s", 
+            (json.dumps(session_data), session_id)
+        )
+        conn.commit()
+
+        return jsonify({"status": "success", "reply": ai_reply})
+        
+    except Exception as e:
+        print(f"Chat route error: {e}")
+        return jsonify({"error": "An internal server error occurred."}), 500
+    finally:
+        if cursor is not None:
+            cursor.close()
+        conn.close()
 
 
 if __name__ == '__main__':

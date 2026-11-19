@@ -147,6 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // 1. Temporarily hide the action buttons
             const actionButtons = dashboardElement.querySelectorAll('button');
+            const originalDisplays = Array.from(actionButtons, btn => btn.style.display);
             actionButtons.forEach(btn => btn.style.display = 'none');
 
             // 2. Configure the PDF settings
@@ -164,7 +165,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // 3. Generate and save the PDF, then restore the buttons
             html2pdf().set(opt).from(dashboardElement).save().then(() => {
-                actionButtons.forEach(btn => btn.style.display = 'block');
+                actionButtons.forEach((btn, index) => {
+                    btn.style.display = originalDisplays[index];
+                });
             });
         });
     }

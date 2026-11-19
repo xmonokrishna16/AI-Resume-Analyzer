@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mock Interview - Skill Bridge AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mock_interview.css', v=2) }}">
+</head>
+
+<body class="mock-interview-page">
+    <header class="mock-interview-topbar">
+        <a href="{{ url_for('dashboard') }}" class="brand-logo">
+            <div class="logo-icon">SB</div>
+            <div>Skill Bridge <span class="highlight">AI</span></div>
+        </a>
+        <a href="{{ url_for('dashboard') }}" class="mock-interview-back">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m14 5-7 7 7 7M7 12h14" />
+            </svg>
+            Back
+        </a>
+    </header>
+
+    <main class="mock-interview-main">
+        <div class="mock-interview-card">
+            <aside class="mock-interview-hero" aria-label="Interview practice benefits">
+                <img src="{{ url_for('static', filename='images/mock genrator Laptop UI Card.png') }}"
+                    alt="" class="mock-interview-hero-art">
+                <div class="mock-interview-hero-copy">
+                    <p class="mock-interview-hero-kicker">Ace Your</p>
+                    <h2>Next Interview</h2>
+                    <p>Practice. Improve. Succeed.</p>
+                    <span class="mock-interview-hero-accent" aria-hidden="true"></span>
+                </div>
+                <div class="mock-interview-benefits">
+                    <div>
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m13 2-9 12h7l-1 8 10-13h-7l1-7Z"/></svg>
+                        <span>Real-Time<br>Feedback</span>
+                    </div>
+                    <div>
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V12h4v8M10 20V5h4v15m2 0V9h4v11"/></svg>
+                        <span>Track Your<br>Progress</span>
+                    </div>
+                    <div>
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z"/></svg>
+                        <span>Build<br>Confidence</span>
+                    </div>
+                </div>
+            </aside>
+
+            <section class="mock-interview-form-panel">
+                <!-- Setup Form -->
+                <div id="setupArea">
+                    <div class="mock-interview-heading">
+                        <span class="mock-interview-heading-icon" aria-hidden="true">✦</span>
+                        <div>
+                            <h1>Configure Mock Interview</h1>
+                            <p>Customize your interview practice session with precision.</p>
+                        </div>
+                    </div>
+
+                    <form id="interviewForm" class="mock-interview-form">
+                        <div class="form-group">
+                            <span class="mock-interview-field-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18m-11 0v2h4v-2"/></svg>
+                            </span>
+                            <div class="mock-interview-field-content">
+                                <label for="interview_mode">Interview Mode</label>
+                                <select id="interview_mode" name="interview_mode" class="form-control"
+                                    onchange="toggleCountField()">
+                                    <option value="interactive">Interactive 1-on-1 AI Interviewer</option>
+                                    <option value="list">Generate Static Question List</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <span class="mock-interview-field-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m6-10a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm12 10v-2a4 4 0 0 0-3-3.9m-1-12a4 4 0 0 1 0 7.8"/></svg>
+                            </span>
+                            <div class="mock-interview-field-content">
+                                <label for="category">Question Category Focus</label>
+                                <select id="category" name="category" class="form-control">
+                                    <option value="mixed">Mixed (All Types)</option>
+                                    <option value="technical">Technical Skills & Experience</option>
+                                    <option value="dsa">Data Structures & Algorithms</option>
+                                    <option value="subjective">Subjective / Core Knowledge</option>
+                                    <option value="personality">Behavioral & Personality</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group" id="countGroup" style="display: none;">
+                            <span class="mock-interview-field-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4M8 11l2 2 4-5"/></svg>
+                            </span>
+                            <div class="mock-interview-field-content">
+                                <label for="question_count">Number of Questions</label>
+                                <input type="number" id="question_count" name="question_count" class="form-control"
+                                    value="5" min="3" max="20">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <span class="mock-interview-field-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24"><path d="M6 3h9l5 5v13H6z"/><path d="M14 3v6h6M9 13h8m-8 4h8"/></svg>
+                            </span>
+                            <div class="mock-interview-field-content">
+                                <label for="job_desc">Target Job Description</label>
+                                <textarea id="job_desc" name="job_desc" class="form-control"
+                                    placeholder="Paste the job requirements here..." required></textarea>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <span class="mock-interview-field-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24"><path d="M12 16V4m-4 4 4-4 4 4"/><path d="M5 14a4 4 0 0 0 0 8h13a4 4 0 0 0 0-8h-1"/></svg>
+                            </span>
+                            <div class="mock-interview-field-content">
+                                <label for="resume">Upload Resume (PDF/DOCX)</label>
+                                <input type="file" id="resume" name="resume" class="form-control" accept=".pdf,.docx"
+                                    required>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="mock-interview-start">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 4 13 8-13 8V4Z"/></svg>
+                            Start Interview
+                        </button>
+                    </form>
+                    <div id="loadingIndicator" class="mock-interview-loading">Initializing AI interviewer...</div>
+                </div>
+
+                <!-- Mode 1: Static List Area -->
+                <div id="listArea">
+                    <div class="mock-interview-result-heading">
+                        <h2>Custom Interview Questions</h2>
+                        <p>Review each question and reveal coaching advice when you are ready.</p>
+                    </div>
+                    <div class="mock-interview-actions">
+                        <button onclick="window.print()" class="mock-interview-secondary">Download PDF / Print</button>
+                        <button onclick="location.reload()" class="mock-interview-secondary">New Session</button>
+                    </div>
+                    <div id="questionsContainer"></div>
+                </div>
+
+                <!-- Mode 2: Interactive Chat Area -->
+                <div id="interactiveArea">
+                    <div class="mock-interview-result-heading">
+                        <h2>Live Mock Interview</h2>
+                        <p>Answer naturally. Your AI interviewer will guide you through the session.</p>
+                    </div>
+                    <div class="mock-interview-chat" id="chatBox"></div>
+                    <div class="mock-interview-chat-input">
+                        <input type="text" id="chatInput" class="form-control" placeholder="Type your answer here..."
+                            aria-label="Your interview answer">
+                        <button id="btnSendMsg" class="mock-interview-start">Send</button>
+                    </div>
+                    <button onclick="location.reload()"
+                        class="mock-interview-secondary mock-interview-end-session">End Session</button>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        // Toggle the question count field based on mode
+        function toggleCountField() {
+            const mode = document.getElementById('interview_mode').value;
+            document.getElementById('countGroup').style.display = mode === 'list' ? 'block' : 'none';
+        }
+
+        // Handle Form Submission
+        document.getElementById('interviewForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const mode = document.getElementById('interview_mode').value;
+            const formData = new FormData(form);
+
+            document.getElementById('loadingIndicator').style.display = 'block';
+            form.querySelector('button[type="submit"]').disabled = true;
+
+            try {
+                // Route depends on the selected mode
+                const endpoint = mode === 'list' ? '/api/generate_interview_list' : '/api/start_interactive_interview';
+                const response = await fetch(endpoint, { method: 'POST', body: formData });
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    document.getElementById('setupArea').style.display = 'none';
+                    if (mode === 'list') {
+                        renderList(data.questions);
+                    } else {
+                        startInteractive(data.first_message, data.session_id);
+                    }
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            } finally {
+                document.getElementById('loadingIndicator').style.display = 'none';
+            }
+        });
+
+        function renderList(questions) {
+            document.getElementById('listArea').style.display = 'block';
+            const container = document.getElementById('questionsContainer');
+            questions.forEach((q, index) => {
+                container.innerHTML += `
+                    <div class="mock-interview-qa">
+                        <div class="mock-interview-question">Q${index + 1}: ${q.question}</div>
+                        <button class="mock-interview-reveal" onclick="document.getElementById('advice-${index}').style.display='block'">Reveal Advice</button>
+                        <div class="mock-interview-advice" id="advice-${index}"><strong>Coach's Advice:</strong> ${q.advice}</div>
+                    </div>`;
+            });
+        }
+
+        let currentSessionId = null;
+        function startInteractive(firstMessage, sessionId) {
+            document.getElementById('interactiveArea').style.display = 'block';
+            currentSessionId = sessionId;
+            addChatMessage(firstMessage, 'ai');
+        }
+
+        document.getElementById('btnSendMsg').addEventListener('click', async () => {
+            const input = document.getElementById('chatInput');
+            const msg = input.value.trim();
+            if (!msg || !currentSessionId) return;
+
+            addChatMessage(msg, 'user');
+            input.value = '';
+
+            addChatMessage("Thinking...", 'ai', true);
+
+            try {
+                const response = await fetch('/api/send_chat_message', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_id: currentSessionId, message: msg })
+                });
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    addChatMessage(data.reply, 'ai');
+                } else {
+                    addChatMessage("Error: Could not get response.", 'ai');
+                }
+            } catch (error) {
+                addChatMessage("Network error occurred.", 'ai');
+            }
+        });
+
+        function addChatMessage(text, sender, isTemp = false) {
+            const box = document.getElementById('chatBox');
+            if (!isTemp && document.getElementById('temp-msg')) {
+                document.getElementById('temp-msg').remove();
+            }
+            const div = document.createElement('div');
+            div.className = sender === 'ai' ? 'mock-interview-message-ai' : 'mock-interview-message-user';
+            if (isTemp) div.id = 'temp-msg';
+            div.textContent = text;
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+        }
+    </script>
+</body>
+
+</html>

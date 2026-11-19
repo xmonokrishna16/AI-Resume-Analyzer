@@ -4,141 +4,666 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ user.name }} - ATS Resume</title>
+
+    <title>{{ user.name }} - Resume | Skill Bridge AI</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
     <style>
-        /* Strict ATS-friendly CSS */
-        body {
-            font-family: 'Arial', 'Helvetica', sans-serif;
-            color: #000;
-            line-height: 1.5;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 40px;
-            background: #fff;
+        :root {
+            --primary: #2458f5;
+            --primary-dark: #153dcc;
+            --secondary: #7652ff;
+            --text: #111a38;
+            --muted: #64708e;
+            --border: #e5eaff;
+            --background: #f3f6ff;
+            --white: #ffffff;
         }
 
-        /* Typography */
-        h1 {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at 80% 5%, rgba(100, 139, 255, 0.15), transparent 30%),
+                linear-gradient(135deg, #f5f7ff, #edf1ff 55%, #f8f9ff);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* TOP NAVIGATION */
+
+        .topbar {
+            height: 76px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(18px);
+            border-bottom: 1px solid rgba(220, 228, 255, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 6%;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            width: 43px;
+            height: 43px;
+            border-radius: 13px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #2458f5, #1740d8);
+            color: white;
+            font-size: 17px;
+            font-weight: 800;
+            box-shadow: 0 5px 14px rgba(36, 88, 245, 0.25);
+        }
+
+        .brand-name {
+            font-size: 17px;
+            font-weight: 800;
+            letter-spacing: -0.6px;
+        }
+
+        .brand-name span {
+            color: var(--primary);
+        }
+
+        .brand-subtitle {
+            font-size: 10px;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            color: #16865d;
+            font-size: 12px;
+            font-weight: 600;
+            background: #e8fff5;
+            padding: 8px 13px;
+            border-radius: 30px;
+        }
+
+        .status-dot {
+            height: 7px;
+            width: 7px;
+            background: #16bd7a;
+            border-radius: 50%;
+        }
+
+        /* MAIN CONTAINER */
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 45px 24px 70px;
+        }
+
+        /* PAGE HEADING */
+
+        .page-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+
+        .eyebrow {
+            color: var(--primary);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1.1px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .page-heading h1 {
+            font-size: clamp(25px, 4vw, 34px);
+            font-weight: 800;
+            letter-spacing: -1.4px;
+        }
+
+        .page-heading p {
+            color: var(--muted);
+            font-size: 13px;
+            margin-top: 5px;
+        }
+
+        /* ACTION BUTTONS */
+
+        .actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            padding: 12px 19px;
+            border-radius: 11px;
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            transition: 0.25s ease;
+        }
+
+        .btn-secondary {
+            color: #35436b;
+            background: white;
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: #f4f6ff;
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            color: white;
+            background: linear-gradient(135deg, #3869ff, #1949e9);
+            box-shadow: 0 6px 17px rgba(36, 88, 245, 0.25);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #2858f0, #153dcc);
+            transform: translateY(-2px);
+            box-shadow: 0 9px 22px rgba(36, 88, 245, 0.32);
+        }
+
+        /* PREVIEW INFORMATION */
+
+        .preview-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid var(--border);
+            border-bottom: none;
+            border-radius: 15px 15px 0 0;
+        }
+
+        .preview-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .preview-icon {
+            width: 32px;
+            height: 32px;
+            background: #edf1ff;
+            color: var(--primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 9px;
+            font-size: 16px;
+        }
+
+        .page-count {
+            font-size: 11px;
+            color: var(--muted);
+            background: #f2f4fc;
+            padding: 6px 11px;
+            border-radius: 20px;
+        }
+
+        /* RESUME PAPER */
+
+        .resume-wrapper {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 30px;
+            border: 1px solid var(--border);
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 15px 45px rgba(55, 82, 155, 0.08);
+        }
+
+        .resume {
+            background: white;
+            max-width: 850px;
+            margin: auto;
+            padding: 58px 65px;
+            box-shadow: 0 5px 25px rgba(20, 38, 90, 0.07);
+            border: 1px solid #edf0f7;
+            color: #20263a;
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.55;
+        }
+
+        /* RESUME HEADER */
+
+        .resume-header {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #263e80;
+            margin-bottom: 22px;
+        }
+
+        .resume-header h1 {
             font-size: 28px;
-            margin-bottom: 5px;
+            font-weight: 800;
+            color: #172750;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            overflow-wrap: anywhere;
+        }
+
+        .contact-info {
+            color: #505b70;
+            font-size: 12px;
+            font-weight: 500;
+            overflow-wrap: anywhere;
+        }
+
+        /* RESUME SECTIONS */
+
+        .resume-section {
+            margin-bottom: 23px;
+        }
+
+        .resume-section h2 {
+            color: #213e85;
+            font-size: 15px;
+            font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 1px;
-        }
-
-        h2 {
-            font-size: 18px;
-            border-bottom: 1px solid #000;
-            padding-bottom: 4px;
-            margin-top: 25px;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        /* Layout */
-        .contact-info {
-            margin-bottom: 25px;
-            font-size: 14px;
-        }
-
-        .project-title {
-            font-weight: bold;
-            margin-top: 15px;
-            font-size: 16px;
+            border-bottom: 1px solid #d7deed;
+            padding-bottom: 6px;
+            margin-bottom: 12px;
         }
 
         .institution-name {
-            font-weight: bold;
-            font-size: 16px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #222b40;
         }
 
-        ul {
-            margin-top: 5px;
-            padding-left: 20px;
-            margin-bottom: 15px;
+        .education-details {
+            font-size: 13px;
+            color: #505b70;
+            margin-top: 3px;
         }
 
-        li {
+        .skills-content {
+            font-size: 13px;
+            color: #424c62;
+        }
+
+        .skills-content strong {
+            color: #25375f;
+        }
+
+        .project {
+            margin-bottom: 16px;
+        }
+
+        .project-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #25365f;
+            margin-bottom: 5px;
+        }
+
+        .project ul {
+            padding-left: 19px;
+            margin-top: 4px;
+        }
+
+        .project li {
+            font-size: 13px;
+            color: #4b566b;
+            padding-left: 3px;
             margin-bottom: 4px;
         }
 
-        /* Print Styles - Hides button and margins when generating PDF */
+        /* FOOTER */
+
+        .footer-note {
+            text-align: center;
+            margin-top: 22px;
+            color: #7a86a3;
+            font-size: 11px;
+        }
+
+        /* BOTTOM BRAND STRIP */
+
+        .bottom-brand {
+            text-align: center;
+            margin-top: 25px;
+            font-size: 11px;
+            color: #7a86a3;
+        }
+
+        .bottom-brand strong {
+            color: var(--primary);
+        }
+
+        /* RESPONSIVE */
+
+        @media (max-width: 768px) {
+            .topbar {
+                padding: 0 18px;
+                height: 68px;
+            }
+
+            .container {
+                padding: 28px 14px 45px;
+            }
+
+            .page-heading {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .actions {
+                width: 100%;
+            }
+
+            .actions .btn {
+                flex: 1;
+            }
+
+            .resume-wrapper {
+                padding: 12px;
+            }
+
+            .resume {
+                padding: 32px 23px;
+            }
+
+            .resume-header h1 {
+                font-size: 23px;
+            }
+
+            .preview-toolbar {
+                padding: 12px;
+            }
+
+            .status {
+                display: none;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .brand-name {
+                font-size: 15px;
+            }
+
+            .resume {
+                padding: 27px 17px;
+            }
+
+            .contact-info {
+                font-size: 11px;
+            }
+        }
+
+        /* PRINT / PDF SETTINGS */
+
         @media print {
+
+            @page {
+                size: A4;
+                margin: 15mm;
+            }
+
+            html,
+            body {
+                background: white !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100%;
+            }
+
             .no-print {
                 display: none !important;
             }
 
-            body {
-                padding: 0;
-                margin: 0;
-                max-width: 100%;
+            .container {
+                padding: 0 !important;
+                margin: 0 !important;
+                max-width: 100% !important;
             }
 
-            @page {
-                margin: 2cm;
-                /* Standard print margins */
+            .resume-wrapper {
+                padding: 0 !important;
+                border: none !important;
+                background: white !important;
+                box-shadow: none !important;
             }
-        }
 
-        /* Button Styling */
-        .download-btn {
-            display: inline-block;
-            margin-bottom: 30px;
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            text-decoration: none;
-            font-weight: bold;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
+            .resume {
+                max-width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                border: none !important;
+                box-shadow: none !important;
+            }
 
-        .download-btn:hover {
-            background-color: #0056b3;
+            .resume-section,
+            .project {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+
+            .resume-header {
+                break-after: avoid;
+                page-break-after: avoid;
+            }
+
+            * {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
         }
     </style>
 </head>
 
 <body>
-    <!-- This button disappears when the user clicks it to print/save to PDF -->
-    <button class="no-print download-btn" onclick="window.print()">
-        ⬇️ Download as PDF
-    </button>
 
-    <!-- Header Section -->
-    <center>
-        <h1>{{ user.name }}</h1>
-        <div class="contact-info">
-            {{ user.email }} | {{ user.phone }} | {{ user.linkedin }}
+    <!-- TOP NAVIGATION -->
+
+    <header class="topbar no-print">
+
+        <div class="brand">
+            <div class="brand-icon">SB</div>
+
+            <div>
+                <div class="brand-name">
+                    Skill Bridge <span>AI</span>
+                </div>
+                <div class="brand-subtitle">
+                    Learn · Practice · Grow
+                </div>
+            </div>
         </div>
-    </center>
 
-    <!-- Education Section -->
-    <h2>Education</h2>
-    <div>
-        <div class="institution-name">{{ user.university }}</div>
-        <div>{{ user.education }}</div>
-    </div>
+        <div class="nav-right">
+            <div class="status">
+                <span class="status-dot"></span>
+                Resume Ready
+            </div>
+        </div>
 
-    <!-- Technical Skills Section -->
-    <h2>Technical Skills</h2>
-    <div>
-        <strong>Core Skills:</strong> {{ user.skills }}
-    </div>
+    </header>
 
-    <!-- Projects Section -->
-    <h2>Projects</h2>
-    {% for project in user.projects %}
-    <div>
-        <div class="project-title">{{ project.title }}</div>
-        <ul>
-            <li>{{ project.desc }}</li>
-        </ul>
-    </div>
-    {% endfor %}
+
+    <main class="container">
+
+        <!-- PAGE HEADING -->
+
+        <section class="page-heading no-print">
+
+            <div>
+                <div class="eyebrow">
+                    ✦ AI Resume Studio
+                </div>
+
+                <h1>Your Professional Resume</h1>
+
+                <p>
+                    Review your resume and download a professional,
+                    ATS-friendly PDF.
+                </p>
+            </div>
+
+            <div class="actions">
+
+                <button class="btn btn-secondary" onclick="window.history.back()">
+                    ← Back
+                </button>
+
+                <button class="btn btn-primary" onclick="window.print()">
+                    ↓ Download PDF
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- RESUME PREVIEW -->
+
+        <div class="preview-toolbar no-print">
+
+            <div class="preview-label">
+                <div class="preview-icon">▤</div>
+                Resume Preview
+            </div>
+
+            <div class="page-count">
+                A4 · ATS Friendly
+            </div>
+
+        </div>
+
+
+        <div class="resume-wrapper">
+
+            <article class="resume">
+
+                <!-- HEADER -->
+
+                <header class="resume-header">
+
+                    <h1>{{ user.name }}</h1>
+
+                    <div class="contact-info">
+                        {{ user.email }} |
+                        {{ user.phone }} |
+                        {{ user.linkedin }}
+                    </div>
+
+                </header>
+
+
+                <!-- EDUCATION -->
+
+                <section class="resume-section">
+
+                    <h2>Education</h2>
+
+                    <div class="institution-name">
+                        {{ user.university }}
+                    </div>
+
+                    <div class="education-details">
+                        {{ user.education }}
+                    </div>
+
+                </section>
+
+
+                <!-- SKILLS -->
+
+                <section class="resume-section">
+
+                    <h2>Technical Skills</h2>
+
+                    <div class="skills-content">
+                        <strong>Core Skills:</strong>
+                        {{ user.skills }}
+                    </div>
+
+                </section>
+
+
+                <!-- PROJECTS -->
+
+                <section class="resume-section">
+
+                    <h2>Projects</h2>
+
+                    {% for project in user.projects %}
+
+                    <div class="project">
+
+                        <div class="project-title">
+                            {{ project.title }}
+                        </div>
+
+                        <ul>
+                            <li>{{ project.desc }}</li>
+                        </ul>
+
+                    </div>
+
+                    {% endfor %}
+
+                </section>
+
+
+            </article>
+
+        </div>
+
+
+        <!-- FOOTER -->
+
+        <div class="bottom-brand no-print">
+            Powered by <strong>Skill Bridge AI</strong>
+            · Build your future with intelligence.
+        </div>
+
+    </main>
 
 </body>
 

@@ -1,3 +1,11 @@
+/* =========================================================
+   1. GLOBAL & DASHBOARD STYLES (Your Original CSS)
+   ========================================================= */
+
+* {
+    box-sizing: border-box;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f8fafc;
@@ -68,8 +76,9 @@ button:hover {
 
 .dashboard-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin-top: 30px;
     margin-bottom: 30px;
 }
 
@@ -159,14 +168,7 @@ button:hover {
     color: #2563eb;
 }
 
-/* --- Dashboard Grid & Cards --- */
-.dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 24px;
-    margin-top: 30px;
-}
-
+/* --- Dashboard Service Cards --- */
 .service-card {
     background: #ffffff;
     border: 1px solid #e2e8f0;
@@ -207,4 +209,378 @@ button:hover {
     border-radius: 6px;
     text-decoration: none;
     font-weight: 500;
+}
+
+
+/* =========================================================
+   2. SKILL BRIDGE AI LOGIN PAGE STYLES
+   ========================================================= */
+
+/* This targets the body ONLY when the login page is active, 
+   protecting your dashboard from layout breaks */
+body:has(.login-container) {
+    background: #e7edff url("../images/Icy Blue Flowing Glass Waves.png") center / cover no-repeat fixed;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    margin: 0;
+}
+
+.login-container,
+.login-container * {
+    font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* Main Container */
+.login-container {
+    display: flex;
+    width: 100%;
+    max-width: 880px;
+    min-height: 560px;
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.02);
+    overflow: hidden;
+}
+
+/* Left Section (Hero Area) */
+.hero-section {
+    flex: 1;
+    min-width: 0;
+    background: url("../images/Futuristic Laptop with Glowing Tech Icons.png") center / cover no-repeat;
+    padding: 36px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    border-right: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.15rem;
+}
+
+.logo-badge {
+    background: #2b5fed;
+    color: white;
+    padding: 6px 8px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: 0.5px;
+}
+
+.logo-text-black {
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.logo-text-blue {
+    font-weight: 700;
+    color: #2b5fed;
+}
+
+.hero-content {
+    margin-top: 35px;
+}
+
+.hero-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    line-height: 1.15;
+    color: #1e293b;
+    margin: 0 0 12px;
+}
+
+.text-gradient {
+    color: #4f46e5;
+    background: linear-gradient(90deg, #2b5fed 0%, #6366f1 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.hero-desc {
+    color: #475569;
+    font-size: 1.05rem;
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* Right Section (Form Area) */
+.form-section {
+    flex: 1;
+    min-width: 0;
+    padding: 40px 50px;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.top-nav {
+    text-align: right;
+    font-size: 0.9rem;
+    color: #64748b;
+    margin-bottom: 20px;
+}
+
+.top-nav p {
+    margin: 0;
+}
+
+.top-nav a {
+    color: #2b5fed;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.form-header {
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+.form-header h2 {
+    font-size: 1.8rem;
+    color: #0f172a;
+    margin: 0 0 6px;
+    font-weight: 700;
+}
+
+.form-header p {
+    color: #475569;
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+/* Flash Messages styling for Login */
+.flash-messages {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.flash-msg {
+    background-color: #fef2f2;
+    color: #dc2626;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid #fca5a5;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-align: center;
+}
+
+/* Social Buttons */
+.social-login {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.social-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 12px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 50px;
+    color: #1e293b;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.social-btn:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+}
+
+/* Divider */
+.login-container .divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    color: #64748b;
+    font-size: 0.85rem;
+    margin: 14px 0;
+}
+
+.login-container .divider::before,
+.login-container .divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.login-container .divider:not(:empty)::before {
+    margin-right: 15px;
+}
+
+.login-container .divider:not(:empty)::after {
+    margin-left: 15px;
+}
+
+/* Input Fields (Scoped to prevent conflicts with global inputs) */
+.input-group {
+    margin-bottom: 12px;
+    text-align: left;
+}
+
+.input-label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 6px;
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.form-input {
+    width: 100%;
+    padding: 8px 40px !important;
+    /* Overrides global padding */
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 10px !important;
+    font-size: 0.9rem;
+    color: #0f172a;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-input[type="password"]::-ms-reveal {
+    display: none;
+}
+
+.form-input::placeholder {
+    color: #94a3b8;
+}
+
+.form-input:focus {
+    border-color: #2b5fed !important;
+    box-shadow: 0 0 0 3px rgba(43, 95, 237, 0.1);
+}
+
+.input-icon {
+    position: absolute;
+    left: 14px;
+    color: #64748b;
+}
+
+.input-icon-right {
+    position: absolute;
+    right: 14px;
+    z-index: 1;
+    width: 18px;
+    min-width: 18px;
+    height: 18px;
+    color: #64748b;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    background: transparent !important;
+    line-height: 1;
+}
+
+.input-icon-right [hidden] {
+    display: none !important;
+}
+
+.input-icon-right:hover {
+    color: #0f172a;
+    background: transparent !important;
+}
+
+.input-icon-right:focus-visible {
+    outline: 2px solid #2b5fed;
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* Links and Submit */
+.forgot-pass {
+    display: block;
+    text-align: right;
+    color: #2b5fed;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    margin: -2px 0 16px 0;
+}
+
+.submit-btn {
+    width: 100%;
+    background: #2b5fed !important;
+    color: white !important;
+    padding: 10px !important;
+    border: none;
+    border-radius: 50px !important;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.2s;
+}
+
+.submit-btn:hover {
+    background: #1d4ed8 !important;
+}
+
+/* Footer */
+.form-footer {
+    text-align: center;
+    font-size: 0.6rem;
+    color: #64748b;
+    margin-top: 14px;
+}
+
+.form-footer a {
+    color: #2b5fed;
+    text-decoration: underline;
+    font-weight: 500;
+}
+
+/* Responsive adjustments */
+@media (max-width: 850px) {
+    .login-container {
+        flex-direction: column;
+        max-width: 500px;
+    }
+
+    .hero-section {
+        padding: 40px 30px 0 30px;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+    }
+
+    .hero-title {
+        font-size: 2rem;
+    }
+
+    .form-section {
+        padding: 40px 30px;
+    }
 }

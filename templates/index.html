@@ -4,164 +4,253 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Resume Analyzer - Dashboard</title>
+    <title>AI Resume Analyzer - Skill Bridge AI</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/analyzer.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 
-<body>
-    <div class="container">
-        <!-- Header -->
-        <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-            <div>
-                <h1>AI Resume Analyzer</h1>
-                <p>Welcome back, <strong>{{ user.name }}</strong>!</p>
-            </div>
-            <a href="{{ url_for('logout') }}" class="btn-secondary"
-                style="text-decoration: none; padding: 10px 20px;">Log Out</a>
-        </header>
+<body class="analyzer-page">
+    <div class="analyzer-shell sidebar-collapsed" id="analyzer-shell">
+        <aside class="analyzer-sidebar" id="analyzer-sidebar" aria-label="Main navigation">
+            <a class="analyzer-brand" href="{{ url_for('dashboard') }}">
+                <span class="analyzer-brand-mark">SB</span>
+                <span><strong>Skill Bridge <em>AI</em></strong><small>Learn · Practice · Grow</small></span>
+            </a>
 
-        <!-- Upload Section -->
-        <div id="upload-section" class="card">
-            <h2>New Analysis</h2>
-            <form id="analyze-form">
-                <div class="form-group">
-                    <label>Target Job Description</label>
-                    <textarea name="job_desc" rows="4" required
-                        placeholder="Paste the job requirements here..."></textarea>
+            <nav class="analyzer-nav">
+                <a href="{{ url_for('dashboard') }}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>
+                    <span>Home</span>
+                </a>
+                <a href="{{ url_for('home') }}" class="active" aria-current="page">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4V3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1m-13 5h22M3 5h18a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/></svg>
+                    <span>Resume Analyzer</span>
+                </a>
+                <a href="{{ url_for('mock_interview') }}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z"/></svg>
+                    <span>Interviews</span>
+                </a>
+                <a href="{{ url_for('mcq_generator_view') }}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8m-8 4h8"/></svg>
+                    <span>Study Tools</span>
+                </a>
+            </nav>
+
+            <div class="analyzer-sidebar-bottom">
+                <div class="sidebar-tip">
+                    <span aria-hidden="true">✨</span>
+                    <strong>Career growth starts here</strong>
+                    <p>Get insights to make your next move with confidence.</p>
                 </div>
+                <a class="analyzer-logout" href="{{ url_for('logout') }}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17l5-5-5-5m5 5H3m9-9h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/></svg>
+                    Log out
+                </a>
+                <small class="sidebar-copyright">&copy; 2026 Skill Bridge AI</small>
+            </div>
+        </aside>
 
-                <div class="form-group">
-                    <label>Upload Resume (.pdf, .docx)</label>
+        <button class="sidebar-backdrop" id="sidebar-backdrop" type="button" aria-label="Close navigation"></button>
 
-                    <!-- Show active default resume if it exists -->
-                    {% if default_resume %}
-                    <p
-                        style="font-size: 0.9em; color: #059669; background: #d1fae5; padding: 8px; border-radius: 4px; margin-top: 0;">
-                        ✅ Using default: <strong>{{ default_resume.original_filename }}</strong> (Upload a new file to
-                        override)
-                    </p>
-                    {% endif %}
+        <main class="analyzer-main">
+            <header class="analyzer-topbar no-print">
+                <div class="topbar-leading">
+                    <button class="menu-toggle" id="sidebar-toggle" type="button" aria-label="Open navigation"
+                        aria-controls="analyzer-sidebar" aria-expanded="false">
+                        <span></span><span></span><span></span>
+                    </button>
+                    <label class="analyzer-search">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+                        <input id="history-search" type="search" placeholder="Search tools, skills, or topics..."
+                            aria-label="Search analysis history">
+                        <kbd>Ctrl K</kbd>
+                    </label>
+                </div>
+                <div class="analyzer-account">
+                    <span class="status"><span class="status-dot"></span> Resume Ready</span>
+                    <span class="account-name">Welcome, <strong>{{ user.name }}</strong></span>
+                    <span class="account-avatar" aria-label="Account for {{ user.name }}">{{ user.name[:1]|upper }}</span>
+                </div>
+            </header>
 
-                    <!-- Only require a file if there is NO default resume -->
-                    <input type="file" name="resume" accept=".pdf,.docx" {% if not default_resume %}required{% endif %}>
-
-                    <div style="margin-top: 10px;">
-                        <label
-                            style="font-weight: normal; display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                            <input type="checkbox" name="save_default" style="width: auto;">
-                            Set this as my default resume for future analyses
-                        </label>
+            <div class="analyzer-content">
+                <section class="analyzer-hero no-print">
+                    <img src="{{ url_for('static', filename='images/dashboard Futuristic AI Laptop Workspace.png') }}"
+                        alt="" class="analyzer-hero-art">
+                    <div class="analyzer-hero-copy">
+                        <span class="hero-tag"><span aria-hidden="true">✦</span> AI-powered resume analysis</span>
+                        <h1>AI Resume <span>Analyzer</span></h1>
+                        <p>Get detailed insights, improve your resume,<br class="desktop-break"> and land your dream job.</p>
+                        <div class="hero-benefits">
+                            <span><b aria-hidden="true">✦</b> Instant analysis</span>
+                            <span><b aria-hidden="true">▥</b> ATS score</span>
+                            <span><b aria-hidden="true">➤</b> Actionable tips</span>
+                        </div>
                     </div>
-                </div>
+                </section>
 
-                <button type="submit" id="submit-btn">Analyze Match</button>
-            </form>
-            <div id="loading" style="display: none;">🧠 AI is analyzing your profile...</div>
-        </div>
+                <section id="upload-section" class="analyzer-panel upload-panel">
+                    <div class="panel-heading">
+                        <span class="panel-icon document-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6m-12 3h7m-7 4h4"/><circle cx="16.5" cy="16.5" r="3.5"/><path d="m19 19 2 2"/></svg>
+                        </span>
+                        <div>
+                            <h2>New Analysis</h2>
+                            <p>Upload your resume and get instant feedback.</p>
+                        </div>
+                    </div>
 
-        <!-- Live Results Section (Hidden by default) -->
-        <div id="dashboard-section" class="card" style="display: none; margin-top: 20px;">
-            <h2>Live Analysis Results</h2>
-            <div style="background: #e0f2fe; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                <h3 style="margin-top: 0; color: #0369a1;">Candidate Profile</h3>
-                <p style="margin: 5px 0;"><strong>🎓 Education:</strong> <span id="edu-text">Analyzing...</span></p>
-                <p style="margin: 5px 0;"><strong>💼 Experience:</strong> <span id="exp-text">Analyzing...</span></p>
+                    <form id="analyze-form">
+                        <div class="analyzer-form-group">
+                            <label for="job-description">Target Job Description</label>
+                            <textarea id="job-description" name="job_desc" rows="4" required
+                                placeholder="Paste the job requirements here..."></textarea>
+                        </div>
+
+                        <div class="analyzer-form-group resume-upload-group">
+                            <label for="resume-file">Upload Resume (.pdf, .docx)</label>
+
+                            {% if default_resume %}
+                            <p class="default-resume-notice">
+                                <span aria-hidden="true">✓</span>
+                                <span>Using default: <strong>{{ default_resume.original_filename }}</strong> (Upload a new file to override)</span>
+                            </p>
+                            {% endif %}
+
+                            <input id="resume-file" type="file" name="resume" accept=".pdf,.docx"
+                                {% if not default_resume %}required{% endif %}>
+
+                            <label class="default-resume-check">
+                                <input type="checkbox" name="save_default">
+                                <span>Set this as my default resume for future analyses</span>
+                            </label>
+                        </div>
+
+                        <button type="submit" id="submit-btn" class="analyze-button">
+                            <span aria-hidden="true">✦</span> Analyze Resume <span aria-hidden="true">→</span>
+                        </button>
+                    </form>
+                    <div id="loading" class="analysis-loading" style="display: none;">🧠 AI is analyzing your profile...</div>
+                </section>
+
+                <section id="dashboard-section" class="analyzer-panel results-panel" style="display: none;">
+                    <div class="panel-heading">
+                        <span class="panel-icon document-icon" aria-hidden="true">✦</span>
+                        <div>
+                            <h2>Live Analysis Results</h2>
+                            <p>Review your resume match, ATS health, and recommended next steps.</p>
+                        </div>
+                    </div>
+
+                    <div class="candidate-profile">
+                        <h3>Candidate Profile</h3>
+                        <p><strong>🎓 Education:</strong> <span id="edu-text">Analyzing...</span></p>
+                        <p><strong>💼 Experience:</strong> <span id="exp-text">Analyzing...</span></p>
+                    </div>
+
+                    <div class="ats-health">
+                        <h3>ATS Formatting Health</h3>
+                        <div class="ats-health-summary">
+                            <p><strong>Length:</strong> <span id="ats-length-status">Analyzing...</span>
+                                (<span id="ats-word-count">0</span> words)</p>
+                            <p id="ats-message"></p>
+                        </div>
+                        <div class="contact-badges">
+                            <span id="contact-email">📧 Email</span>
+                            <span id="contact-phone">📱 Phone</span>
+                            <span id="contact-linkedin">🔗 LinkedIn</span>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-grid">
+                        <div class="chart-container">
+                            <canvas id="scoreChart"></canvas>
+                            <h3 id="score-text">0%</h3>
+                        </div>
+                        <div class="skills-container">
+                            <h3>Critical Missing Skills</h3>
+                            <ul id="missing-skills-list" class="bad-list"></ul>
+                        </div>
+                    </div>
+
+                    <div class="roadmap-container">
+                        <h3>Personalized Learning Roadmap</h3>
+                        <div id="roadmap-list" class="roadmap-timeline"></div>
+                    </div>
+
+                    <div class="result-actions">
+                        <button id="download-pdf-btn" class="analyze-button" data-username="{{ user.name }}">📄 Download PDF Report</button>
+                        <button type="button" class="outline-button" onclick="location.reload()">View History</button>
+                    </div>
+                </section>
+
+                <section class="analyzer-panel history-panel" id="history-panel">
+                    <div class="panel-heading history-heading">
+                        <span class="panel-icon history-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 2.64-6.36L3 8"/><path d="M3 3v5h5m4-1v5l3 2"/></svg>
+                        </span>
+                        <div>
+                            <h2>Past Analyses</h2>
+                            <p>View your previous resume analysis results.</p>
+                        </div>
+                        <a class="view-all-button" href="#history-panel">View All <span aria-hidden="true">→</span></a>
+                    </div>
+
+                    {% if history %}
+                    <div class="history-table-wrap">
+                        <table class="history-table" id="history-table">
+                            <thead>
+                                <tr>
+                                    <th class="select-column"><input type="checkbox" id="select-all" aria-label="Select all analyses"></th>
+                                    <th>Date</th>
+                                    <th>Resume File</th>
+                                    <th>Match Score</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in history %}
+                                <tr>
+                                    <td><input type="checkbox" class="delete-checkbox" value="{{ row.analysis_id }}" aria-label="Select analysis from {{ row.analyzed_at.strftime('%Y-%m-%d') }}"></td>
+                                    <td>{{ row.analyzed_at.strftime('%Y-%m-%d') }}</td>
+                                    <td class="filename-cell">{{ row.original_filename }}</td>
+                                    <td><strong class="score-pill">{{ row.match_score }}%</strong></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <p id="history-empty-search" class="history-empty-search" hidden>No analyses match your search.</p>
+                    <button type="button" id="delete-selected-btn" class="delete-selected-button" style="display: none;">🗑 Delete Selected</button>
+                    {% else %}
+                    <p class="empty-history">You haven't analyzed any resumes yet. Your completed analyses will appear here.</p>
+                    {% endif %}
+                </section>
+
+                <footer class="analyzer-footer no-print">
+                    <span>&copy; 2026 Skill Bridge AI</span>
+                    <span>Learn · Practice · Grow</span>
+                    <a href="{{ url_for('logout') }}">Sign out</a>
+                </footer>
             </div>
+        </main>
+    </div>
 
-            <!-- ATS Health Section -->
-            <div
-                style="background: #fdf2f8; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #db2777;">
-                <h3 style="margin-top: 0; color: #9d174d;">ATS Formatting Health</h3>
-
-                <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 10px;">
-                    <p style="margin: 0;"><strong>Length:</strong> <span id="ats-length-status">Analyzing...</span>
-                        (<span id="ats-word-count">0</span> words)</p>
-                    <p style="margin: 0; font-size: 0.9em; color: #64748b;" id="ats-message"></p>
-                </div>
-
-                <div style="display: flex; gap: 15px;">
-                    <span id="contact-email" style="padding: 4px 8px; border-radius: 4px; font-size: 0.85em;">📧
-                        Email</span>
-                    <span id="contact-phone" style="padding: 4px 8px; border-radius: 4px; font-size: 0.85em;">📱
-                        Phone</span>
-                    <span id="contact-linkedin" style="padding: 4px 8px; border-radius: 4px; font-size: 0.85em;">🔗
-                        LinkedIn</span>
-                </div>
+    <div id="password-modal" class="password-modal no-print" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title"
+        style="display: none;">
+        <div class="password-modal-card">
+            <h3 id="delete-modal-title">Confirm Deletion</h3>
+            <p>Please enter your password to permanently delete the selected records.</p>
+            <input type="password" id="delete-password" placeholder="Account Password" autocomplete="current-password">
+            <div class="password-modal-actions">
+                <button type="button" id="confirm-delete-btn" class="delete-confirm-button">Delete</button>
+                <button type="button" id="cancel-delete-btn" class="outline-button">Cancel</button>
             </div>
-            <div class="dashboard-grid">
-                <div class="chart-container">
-                    <canvas id="scoreChart"></canvas>
-                    <h3 id="score-text">0%</h3>
-                </div>
-                <div class="skills-container">
-                    <h3>Critical Missing Skills</h3>
-                    <ul id="missing-skills-list" class="bad-list"></ul>
-                </div>
-            </div>
-            <div class="roadmap-container">
-                <h3>Personalized Learning Roadmap</h3>
-                <div id="roadmap-list" class="roadmap-timeline"></div>
-            </div>
-            <!-- Dashboard Action Buttons -->
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button id="download-pdf-btn" data-username="{{ user.name }}"
-                    style="background-color: #10b981; flex: 1;">📄
-                    Download PDF Report</button>
-                <button onclick="location.reload()" class="btn-secondary" style="flex: 1; margin-top: 0;">View
-                    History</button>
-            </div>
-        </div>
-
-        <!-- History Section -->
-        <div class="card" style="margin-top: 20px;">
-            <h2>Past Analyses</h2>
-            {% if history %}
-            <table class="history-table">
-                <thead>
-                    <tr>
-                        <th style="width: 40px;"><input type="checkbox" id="select-all"></th>
-                        <th>Date</th>
-                        <th>Resume File</th>
-                        <th>Match Score</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for row in history %}
-                    <tr>
-                        <td><input type="checkbox" class="delete-checkbox" value="{{ row.analysis_id }}"></td>
-                        <td>{{ row.analyzed_at.strftime('%Y-%m-%d') }}</td>
-                        <td>{{ row.original_filename }}</td>
-                        <td><strong>{{ row.match_score }}%</strong></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            <button id="delete-selected-btn"
-                style="background-color: #ef4444; margin-top: 15px; display: none; width: auto;">🗑️ Delete
-                Selected</button>
-            {% else %}
-            <p style="color: #64748b;">You haven't analyzed any resumes yet.</p>
-            {% endif %}
         </div>
     </div>
 
-    <!-- Secure Password Modal (Hidden by default) -->
-    <div id="password-modal"
-        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000;">
-        <div class="card" style="max-width: 350px; width: 100%; text-align: center;">
-            <h3 style="margin-top: 0; color: #ef4444;">Confirm Deletion</h3>
-            <p style="font-size: 0.9em;">Please enter your password to permanently delete the selected records.</p>
-            <input type="password" id="delete-password" placeholder="Account Password" style="margin-bottom: 15px;">
-            <div style="display: flex; gap: 10px;">
-                <button id="confirm-delete-btn" style="background-color: #ef4444; flex: 1;">Delete</button>
-                <button id="cancel-delete-btn" class="btn-secondary" style="flex: 1; margin-top: 0;">Cancel</button>
-            </div>
-        </div>
-    </div>
-    </div>
-
+    <script src="{{ url_for('static', filename='js/analyzer.js') }}"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 
