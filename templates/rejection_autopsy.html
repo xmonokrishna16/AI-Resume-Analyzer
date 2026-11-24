@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rejection Autopsy &amp; Recovery Sprint - Skill Bridge AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/rejection_autopsy.css') }}">
+</head>
+
+<body class="autopsy-page">
+    <header class="autopsy-topbar">
+        <a href="{{ url_for('dashboard') }}" class="autopsy-brand">
+            <span class="autopsy-brand-mark">SB</span>
+            <span>Skill Bridge <b>AI</b></span>
+        </a>
+        <a href="{{ url_for('dashboard') }}" class="autopsy-back"><span aria-hidden="true">←</span> Dashboard</a>
+    </header>
+
+    <main class="autopsy-main">
+        <section class="autopsy-heading">
+            <span class="autopsy-eyebrow"><span aria-hidden="true">↗</span> Comeback &amp; Recovery</span>
+            <h1>Rejection Autopsy <span>&amp; 7-Day Recovery Sprint</span></h1>
+            <p>Turn a difficult outcome into useful evidence, focused practice, and one achievable next step at a time.</p>
+        </section>
+
+        {% if history_error %}
+        <div class="autopsy-notice" role="status">{{ history_error }}</div>
+        {% endif %}
+
+        {% if recurring_patterns %}
+        <section class="recurring-panel" aria-labelledby="recurring-heading">
+            <div>
+                <span class="autopsy-eyebrow">Patterns worth noticing</span>
+                <h2 id="recurring-heading">Recurring failure patterns</h2>
+                <p>Repeated diagnoses are signals to investigate—not proof of a fixed limitation.</p>
+            </div>
+            <div class="pattern-list">
+                {% for pattern in recurring_patterns %}
+                <span class="pattern-chip">{{ pattern.primary_failure_pattern }} <b>{{ pattern.occurrences }}×</b></span>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <div class="autopsy-layout">
+            <section class="autopsy-panel input-panel" aria-labelledby="log-heading">
+                <div class="autopsy-panel-heading">
+                    <span class="panel-step">01</span>
+                    <div>
+                        <h2 id="log-heading">Log the experience</h2>
+                        <p>Share what you know; the analysis will distinguish evidence from hypotheses.</p>
+                    </div>
+                </div>
+                <form id="autopsy-form">
+                    <div class="autopsy-form-grid">
+                        <div class="autopsy-field">
+                            <label for="company-name">Company name</label>
+                            <input id="company-name" name="company_name" type="text" maxlength="150"
+                                placeholder="e.g. Northstar Labs" required>
+                        </div>
+                        <div class="autopsy-field">
+                            <label for="target-role">Target role</label>
+                            <input id="target-role" name="target_role" type="text" maxlength="150"
+                                placeholder="e.g. Backend Engineer" required>
+                        </div>
+                        <div class="autopsy-field autopsy-field-wide">
+                            <label for="failed-round">Round failed</label>
+                            <select id="failed-round" name="failed_round" required>
+                                <option value="Resume / Ghosted">Resume shortlist / Ghosted</option>
+                                <option value="Online Assessment (OA)">Online Assessment (OA)</option>
+                                <option value="Technical Round">Technical Round</option>
+                                <option value="System Design">System Design</option>
+                                <option value="Managerial / HR">Managerial / HR</option>
+                            </select>
+                        </div>
+                        <div class="autopsy-field autopsy-field-wide">
+                            <label for="job-description">Job description <span>(optional)</span></label>
+                            <textarea id="job-description" name="job_description" rows="4" maxlength="12000"
+                                placeholder="Paste relevant responsibilities or requirements to make the review more specific."></textarea>
+                        </div>
+                        <div class="autopsy-field autopsy-field-wide">
+                            <label for="what-happened">What stumped you / What went wrong?</label>
+                            <textarea id="what-happened" name="what_happened" rows="7" maxlength="8000" required
+                                placeholder="What questions or tasks came up? Where did you hesitate, run out of time, or feel least confident? Include any feedback you actually received."></textarea>
+                            <small>Only share details you’re comfortable storing in your account.</small>
+                        </div>
+                    </div>
+                    <div class="autopsy-actions">
+                        <button class="autopsy-primary" id="analyze-button" type="submit">
+                            Diagnose &amp; Build 7-Day Sprint <span aria-hidden="true">→</span>
+                        </button>
+                        <span class="autopsy-loading" id="analyze-loading" role="status" hidden>
+                            <span class="autopsy-spinner" aria-hidden="true"></span> Building an evidence-aware recovery plan…
+                        </span>
+                    </div>
+                    <p class="autopsy-error" id="form-error" role="alert" hidden></p>
+                </form>
+            </section>
+
+            <section class="autopsy-panel report-panel" aria-labelledby="report-heading">
+                <div class="autopsy-panel-heading">
+                    <span class="panel-step">02</span>
+                    <div>
+                        <h2 id="report-heading">Autopsy report &amp; sprint</h2>
+                        <p id="report-context">Your saved diagnosis and recovery progress will appear here.</p>
+                    </div>
+                </div>
+                <div class="report-empty" id="report-empty">
+                    <span aria-hidden="true">✦</span>
+                    <h3>Make the next attempt more informed</h3>
+                    <p>Log a rejection or stalled process to build a focused seven-day practice plan.</p>
+                </div>
+                <div class="autopsy-report" id="autopsy-report" hidden>
+                    <div class="diagnosis-banner">
+                        <span class="diagnosis-label">Primary failure pattern</span>
+                        <strong id="failure-pattern"></strong>
+                    </div>
+                    <div class="diagnosis-columns">
+                        <section class="diagnosis-list">
+                            <h3>Likely root causes</h3>
+                            <ul id="root-causes"></ul>
+                        </section>
+                        <section class="diagnosis-list blind-spot-list">
+                            <h3>Hidden blind spots</h3>
+                            <ul id="blind-spots"></ul>
+                        </section>
+                    </div>
+                    <blockquote class="mindset-note" id="mindset-note"></blockquote>
+
+                    <div class="sprint-heading">
+                        <div>
+                            <span class="autopsy-eyebrow">Your comeback plan</span>
+                            <h3>7-Day Recovery Sprint</h3>
+                        </div>
+                        <span class="sprint-count" id="sprint-count">0 / 7 days completed</span>
+                    </div>
+                    <div class="sprint-progress" role="progressbar" aria-label="Recovery sprint progress"
+                        aria-valuemin="0" aria-valuemax="7" aria-valuenow="0" id="sprint-progress">
+                        <span id="sprint-progress-fill"></span>
+                    </div>
+                    <p class="sprint-status" id="sprint-status" aria-live="polite"></p>
+                    <div class="sprint-list" id="sprint-list"></div>
+                    <p class="autopsy-error sprint-error" id="sprint-error" role="alert" hidden></p>
+                </div>
+            </section>
+        </div>
+
+        <section class="autopsy-panel history-panel" aria-labelledby="history-heading">
+            <div class="history-heading">
+                <div>
+                    <span class="autopsy-eyebrow">Learn from each attempt</span>
+                    <h2 id="history-heading">Past Autopsies &amp; Recovery Sprints</h2>
+                </div>
+                <span class="history-count" id="history-count">{{ autopsy_history|length }} saved</span>
+            </div>
+            {% if autopsy_history %}
+            <div class="autopsy-history-list" id="autopsy-history-list">
+                {% for item in autopsy_history %}
+                <article class="autopsy-history-item" data-autopsy-id="{{ item.id }}">
+                    <button class="history-load" type="button" data-load-autopsy="{{ item.id }}"
+                        {% if not item.autopsy %}disabled{% endif %}>
+                        <strong>{{ item.company_name }} · {{ item.target_role }}</strong>
+                        <span>{{ item.failed_round }} · {{ item.created_at }} · {{ item.completed_days|length }}/7 days</span>
+                    </button>
+                    <span class="history-diagnosis">{{ item.primary_failure_pattern }}</span>
+                    <span class="history-status {{ 'is-complete' if item.status == 'Completed' else '' }}">
+                        {{ 'Completed' if item.status == 'Completed' else item.completed_days|length ~ '/7 days' }}
+                    </span>
+                    <button class="delete-autopsy-button" type="button" data-delete-autopsy="{{ item.id }}"
+                        aria-label="Delete saved recovery sprint for {{ item.company_name }}">Delete</button>
+                </article>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="history-empty" id="history-empty">
+                {% if history_available %}
+                Your saved autopsies will appear here after your first analysis.
+                {% else %}
+                Recovery history will be available after the database migration is applied.
+                {% endif %}
+            </div>
+            <div class="autopsy-history-list" id="autopsy-history-list" hidden></div>
+            {% endif %}
+            <p class="history-status-message" id="history-status-message" role="status" hidden></p>
+        </section>
+    </main>
+
+    <script>
+        const analyzeUrl = {{ url_for('api_analyze_rejection')|tojson }};
+        const toggleDayUrlTemplate = {{ toggle_day_url|tojson }};
+        const deleteUrlTemplate = {{ delete_url|tojson }};
+        const savedAutopsies = {{ autopsy_history|tojson }};
+        const toolUrls = {
+            mcq: {{ url_for('mcq_generator_view')|tojson }},
+            mock_interview: {{ url_for('mock_interview')|tojson }},
+            resume_tailor: {{ url_for('resume_tailor_view')|tojson }},
+            project_defense: {{ url_for('project_defense_view')|tojson }},
+            self_study: {{ (url_for('dashboard') ~ '#tools')|tojson }}
+        };
+        const form = document.getElementById('autopsy-form');
+        const reportPanel = document.getElementById('autopsy-report');
+        const reportEmpty = document.getElementById('report-empty');
+        const autopsyHistory = new Map(savedAutopsies.map(item => [String(item.id), item]));
+        let currentAutopsy = null;
+        let progressUpdatePending = false;
+        const toolLabels = {
+            mcq: 'Practice MCQs',
+            mock_interview: 'Practice an interview',
+            resume_tailor: 'Tailor your resume',
+            project_defense: 'Defend a project',
+            self_study: 'Review independently'
+        };
+
+        function createTextItem(text) {
+            const item = document.createElement('li');
+            item.textContent = text;
+            return item;
+        }
+
+        function renderList(elementId, values) {
+            const list = document.getElementById(elementId);
+            list.replaceChildren();
+            values.forEach(value => list.appendChild(createTextItem(value)));
+        }
+
+        function renderProgress(item) {
+            const completed = new Set(item.completed_days || []);
+            const count = completed.size;
+            const progress = document.getElementById('sprint-progress');
+            document.getElementById('sprint-count').textContent = `${count} / 7 days completed`;
+            document.getElementById('sprint-progress-fill').style.width = `${Math.round(count / 7 * 100)}%`;
+            progress.setAttribute('aria-valuenow', String(count));
+            const status = count === 7 ? 'Completed' : 'In Progress';
+            document.getElementById('sprint-status').textContent =
+                count === 7 ? 'Sprint complete. Carry the habits into your next opportunity.' : 'Sprint status: In Progress';
+            const cards = document.querySelectorAll('.sprint-day');
+            cards.forEach(card => {
+                const day = Number(card.dataset.day);
+                const checkbox = card.querySelector('input[type="checkbox"]');
+                checkbox.checked = completed.has(day);
+                card.classList.toggle('day-complete', checkbox.checked);
+            });
+            item.status = status;
+            updateHistoryProgress(item);
+        }
+
+        function renderAutopsy(item) {
+            if (!item || !item.autopsy) return;
+            currentAutopsy = item;
+            const report = item.autopsy;
+            document.getElementById('report-context').textContent =
+                `${item.company_name} · ${item.target_role} · ${item.failed_round}`;
+            document.getElementById('failure-pattern').textContent = report.primary_failure_pattern;
+            renderList('root-causes', report.root_causes || []);
+            renderList('blind-spots', report.blind_spots || []);
+            document.getElementById('mindset-note').textContent = report.comeback_mindset_note || '';
+
+            const sprintList = document.getElementById('sprint-list');
+            sprintList.replaceChildren();
+            (report.recovery_sprint || []).forEach(task => {
+                const card = document.createElement('article');
+                card.className = 'sprint-day';
+                card.dataset.day = task.day;
+                const header = document.createElement('div');
+                header.className = 'sprint-day-header';
+                const label = document.createElement('label');
+                label.className = 'day-check-label';
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.dataset.dayToggle = String(task.day);
+                checkbox.disabled = progressUpdatePending;
+                checkbox.setAttribute('aria-label', `Mark day ${task.day} complete`);
+                const dayTitle = document.createElement('span');
+                dayTitle.className = 'day-title';
+                dayTitle.textContent = `Day ${task.day} · ${task.title}`;
+                label.append(checkbox, dayTitle);
+                const time = document.createElement('span');
+                time.className = 'task-time';
+                time.textContent = `${task.estimated_minutes} min`;
+                header.append(label, time);
+
+                const focus = document.createElement('span');
+                focus.className = 'focus-topic';
+                focus.textContent = `Focus: ${task.focus_topic}`;
+                const description = document.createElement('p');
+                description.className = 'task-description';
+                description.textContent = task.action_task;
+                const action = document.createElement('a');
+                action.className = 'smart-action';
+                action.href = toolUrls[task.recommended_tool] || toolUrls.self_study;
+                action.textContent = `${toolLabels[task.recommended_tool] || toolLabels.self_study} →`;
+                card.append(header, focus, description, action);
+                sprintList.appendChild(card);
+            });
+
+            reportEmpty.hidden = true;
+            reportPanel.hidden = false;
+            document.getElementById('sprint-error').hidden = true;
+            renderProgress(item);
+        }
+
+        async function analyzeRejection(event) {
+            event.preventDefault();
+            const error = document.getElementById('form-error');
+            error.hidden = true;
+            document.getElementById('analyze-button').disabled = true;
+            document.getElementById('analyze-loading').hidden = false;
+            const values = Object.fromEntries(new FormData(form).entries());
+            try {
+                const response = await fetch(analyzeUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(values)
+                });
+                const data = await response.json();
+                if (!response.ok || data.status !== 'success') {
+                    throw new Error(data.error || 'Could not build the recovery sprint.');
+                }
+                const item = {
+                    id: data.autopsy_id,
+                    company_name: data.company_name,
+                    target_role: data.target_role,
+                    failed_round: data.failed_round,
+                    primary_failure_pattern: data.autopsy.primary_failure_pattern,
+                    autopsy: data.autopsy,
+                    completed_days: [],
+                    status: 'In Progress',
+                    created_at: 'Just now'
+                };
+                autopsyHistory.set(String(item.id), item);
+                renderAutopsy(item);
+                addHistoryItem(item);
+            } catch (requestError) {
+                error.textContent = requestError.message || 'Analysis failed. Please try again.';
+                error.hidden = false;
+            } finally {
+                document.getElementById('analyze-button').disabled = false;
+                document.getElementById('analyze-loading').hidden = true;
+            }
+        }
+
+        function updateHistoryProgress(item) {
+            const row = Array.from(document.querySelectorAll('.autopsy-history-item'))
+                .find(candidate => candidate.dataset.autopsyId === String(item.id));
+            if (!row) return;
+            const status = row.querySelector('.history-status');
+            const count = (item.completed_days || []).length;
+            status.textContent = count === 7 ? 'Completed' : `${count}/7 days`;
+            status.classList.toggle('is-complete', count === 7);
+            row.querySelector('.history-load span').textContent =
+                `${item.failed_round} · ${item.created_at} · ${count}/7 days`;
+        }
+
+        function addHistoryItem(item) {
+            const list = document.getElementById('autopsy-history-list');
+            const empty = document.getElementById('history-empty');
+            if (empty) empty.hidden = true;
+            list.hidden = false;
+            const row = document.createElement('article');
+            row.className = 'autopsy-history-item';
+            row.dataset.autopsyId = item.id;
+            const load = document.createElement('button');
+            load.type = 'button';
+            load.className = 'history-load';
+            load.dataset.loadAutopsy = item.id;
+            const title = document.createElement('strong');
+            title.textContent = `${item.company_name} · ${item.target_role}`;
+            const metadata = document.createElement('span');
+            metadata.textContent = `${item.failed_round} · Just now · 0/7 days`;
+            load.append(title, metadata);
+            load.addEventListener('click', () => renderAutopsy(item));
+            const diagnosis = document.createElement('span');
+            diagnosis.className = 'history-diagnosis';
+            diagnosis.textContent = item.primary_failure_pattern;
+            const status = document.createElement('span');
+            status.className = 'history-status';
+            status.textContent = '0/7 days';
+            const remove = document.createElement('button');
+            remove.type = 'button';
+            remove.className = 'delete-autopsy-button';
+            remove.textContent = 'Delete';
+            remove.setAttribute('aria-label', `Delete recovery sprint for ${item.company_name}`);
+            remove.addEventListener('click', () => deleteAutopsy(item.id, row));
+            row.append(load, diagnosis, status, remove);
+            list.prepend(row);
+            document.getElementById('history-count').textContent = `${list.children.length} saved`;
+        }
+
+        async function toggleDay(checkbox) {
+            if (!currentAutopsy || progressUpdatePending) return;
+            const targetAutopsy = currentAutopsy;
+            const day = Number(checkbox.dataset.dayToggle);
+            const previous = (targetAutopsy.completed_days || []).includes(day);
+            progressUpdatePending = true;
+            document.querySelectorAll('[data-day-toggle]').forEach(toggle => { toggle.disabled = true; });
+            const sprintError = document.getElementById('sprint-error');
+            if (currentAutopsy === targetAutopsy) sprintError.hidden = true;
+            try {
+                const url = toggleDayUrlTemplate.replace(/0$/, String(targetAutopsy.id));
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ day })
+                });
+                const data = await response.json();
+                if (!response.ok || data.status !== 'success') {
+                    throw new Error(data.error || 'Could not update sprint progress.');
+                }
+                targetAutopsy.completed_days = data.completed_days;
+                targetAutopsy.status = data.status_label;
+                if (currentAutopsy === targetAutopsy) renderProgress(targetAutopsy);
+            } catch (requestError) {
+                checkbox.checked = previous;
+                checkbox.closest('.sprint-day').classList.toggle('day-complete', previous);
+                if (currentAutopsy === targetAutopsy) {
+                    sprintError.textContent = requestError.message || 'Could not update sprint progress.';
+                    sprintError.hidden = false;
+                }
+            } finally {
+                progressUpdatePending = false;
+                document.querySelectorAll('[data-day-toggle]').forEach(toggle => { toggle.disabled = false; });
+            }
+        }
+
+        async function deleteAutopsy(id, row) {
+            const status = document.getElementById('history-status-message');
+            status.hidden = true;
+            try {
+                const url = deleteUrlTemplate.replace(/0$/, String(id));
+                const response = await fetch(url, { method: 'DELETE' });
+                const data = await response.json();
+                if (!response.ok || data.status !== 'success') {
+                    throw new Error(data.error || 'Could not delete the saved sprint.');
+                }
+                row.remove();
+                autopsyHistory.delete(String(id));
+                if (currentAutopsy && String(currentAutopsy.id) === String(id)) {
+                    currentAutopsy = null;
+                    reportPanel.hidden = true;
+                    reportEmpty.hidden = false;
+                }
+                const list = document.getElementById('autopsy-history-list');
+                document.getElementById('history-count').textContent = `${list.children.length} saved`;
+                if (!list.children.length) {
+                    list.hidden = true;
+                    const empty = document.getElementById('history-empty');
+                    if (empty) empty.hidden = false;
+                }
+            } catch (requestError) {
+                status.textContent = requestError.message || 'Could not delete the saved sprint.';
+                status.hidden = false;
+            }
+        }
+
+        form.addEventListener('submit', analyzeRejection);
+        document.getElementById('sprint-list').addEventListener('change', event => {
+            if (event.target.matches('[data-day-toggle]')) toggleDay(event.target);
+        });
+        document.querySelectorAll('[data-load-autopsy]').forEach(button => {
+            button.addEventListener('click', () => {
+                const item = autopsyHistory.get(button.dataset.loadAutopsy);
+                if (item) renderAutopsy(item);
+            });
+        });
+        document.querySelectorAll('[data-delete-autopsy]').forEach(button => {
+            button.addEventListener('click', () => deleteAutopsy(
+                button.dataset.deleteAutopsy,
+                button.closest('.autopsy-history-item')
+            ));
+        });
+        if (savedAutopsies.length && savedAutopsies[0].autopsy) {
+            renderAutopsy(savedAutopsies[0]);
+        }
+    </script>
+</body>
+
+</html>

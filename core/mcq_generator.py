@@ -4,7 +4,10 @@ import google.generativeai as genai
 from dotenv import load_dotenv
 
 load_dotenv()
-genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
+genai.configure(
+    api_key=os.environ.get("GEMINI_API_KEY"),
+    transport="rest"
+)
 
 def generate_mcqs(text, num_questions):
     max_chars = 15000 
@@ -27,14 +30,14 @@ def generate_mcqs(text, num_questions):
     """
 
     try:
-        # Updated to the latest stable Flash model
         model = genai.GenerativeModel('gemini-3.8-flash')
         
         response = model.generate_content(
             prompt,
             generation_config=genai.GenerationConfig(
                 response_mime_type="application/json"
-            )
+            ),
+            request_options={"timeout": 60}
         )
         
         questions_list = json.loads(response.text)

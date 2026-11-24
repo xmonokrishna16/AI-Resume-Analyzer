@@ -27,6 +27,28 @@ def extract_text_from_docx(file_path):
         print(f"Error reading DOCX: {e}")
         return ""
 
+def extract_text_preserving_case(file_path, extension):
+    """Extracts resume text without the analyzer's lowercasing cleanup."""
+    if extension.lower() == ".pdf":
+        with pdfplumber.open(file_path) as pdf:
+            return "\n".join(
+                page_text
+                for page in pdf.pages
+                if (page_text := page.extract_text())
+            ).strip()
+
+    if extension.lower() == ".docx":
+        document = docx.Document(file_path)
+        paragraphs = [paragraph.text.strip() for paragraph in document.paragraphs if paragraph.text.strip()]
+        table_rows = [
+            " | ".join(cell.text.strip() for cell in row.cells if cell.text.strip())
+            for table in document.tables
+            for row in table.rows
+        ]
+        return "\n".join(paragraphs + [row for row in table_rows if row]).strip()
+
+    raise ValueError("Unsupported resume format.")
+
 def clean_text(raw_text):
     """
     Cleans the raw text to improve NLP accuracy.

@@ -399,6 +399,7 @@ body:has(.login-container) {
     color: #1e293b;
     font-size: 0.95rem;
     font-weight: 600;
+    text-decoration: none;
     cursor: pointer;
     transition: all 0.2s ease;
 }

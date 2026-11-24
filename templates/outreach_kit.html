@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cold Outreach &amp; Referral Kit - Skill Bridge AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/outreach_kit.css') }}">
+</head>
+
+<body class="outreach-page">
+    <header class="outreach-topbar">
+        <a href="{{ url_for('dashboard') }}" class="outreach-brand">
+            <span class="outreach-mark">SB</span>
+            <span>Skill Bridge <b>AI</b></span>
+        </a>
+        <a href="{{ url_for('dashboard') }}" class="outreach-back"><span aria-hidden="true">←</span> Dashboard</a>
+    </header>
+
+    <main class="outreach-main">
+        <section class="outreach-heading">
+            <span class="outreach-eyebrow"><span aria-hidden="true">✦</span> Networking &amp; referrals</span>
+            <h1>Cold Outreach <span>&amp; Referral Kit</span></h1>
+            <p>Turn your strongest project into a thoughtful introduction, a clear referral ask, and a low-pressure follow-up.</p>
+        </section>
+
+        {% if history_error %}
+        <div class="outreach-notice" role="status">{{ history_error }}</div>
+        {% endif %}
+
+        <div class="outreach-layout">
+            <section class="outreach-panel input-panel" aria-labelledby="outreach-input-heading">
+                <div class="outreach-panel-heading">
+                    <span class="panel-step">01</span>
+                    <div>
+                        <h2 id="outreach-input-heading">Set your target</h2>
+                        <p>Share the role and the experience you want to lead with.</p>
+                    </div>
+                </div>
+
+                <div class="source-tabs" role="tablist" aria-label="Resume or project details source">
+                    <button class="source-tab active" id="upload-tab" type="button" role="tab"
+                        aria-selected="true" aria-controls="upload-source">Upload Resume</button>
+                    <button class="source-tab" id="paste-tab" type="button" role="tab"
+                        aria-selected="false" aria-controls="paste-source" tabindex="-1">Paste Summary</button>
+                </div>
+
+                <form id="outreach-form">
+                    <input type="hidden" name="input_mode" id="input-mode" value="upload">
+                    <div class="source-panel" id="upload-source" role="tabpanel" aria-labelledby="upload-tab">
+                        <label class="outreach-label" for="resume-file">Resume (PDF or DOCX)</label>
+                        <div class="upload-box">
+                            <span class="upload-icon" aria-hidden="true">↑</span>
+                            <div>
+                                <input id="resume-file" name="resume" type="file" accept=".pdf,.docx" required>
+                                <small>We extract your resume text; files are limited to 5 MB.</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="source-panel" id="paste-source" role="tabpanel" aria-labelledby="paste-tab" hidden>
+                        <label class="outreach-label" for="resume-text">Resume / key project summary</label>
+                        <textarea id="resume-text" name="resume_text" rows="6" maxlength="18000"
+                            placeholder="Paste your resume or include the project name, what you built, your contribution, and any evidenced impact."></textarea>
+                    </div>
+
+                    <div class="outreach-form-grid">
+                        <div class="outreach-field">
+                            <label class="outreach-label" for="company-name">Target company</label>
+                            <input id="company-name" name="company_name" type="text" maxlength="150"
+                                placeholder="e.g. Northstar Labs" required>
+                        </div>
+                        <div class="outreach-field">
+                            <label class="outreach-label" for="target-role">Target role</label>
+                            <input id="target-role" name="target_role" type="text" maxlength="150"
+                                placeholder="e.g. Backend Engineer" required>
+                        </div>
+                        <div class="outreach-field">
+                            <label class="outreach-label" for="job-link">Job link / ID <span>(optional)</span></label>
+                            <input id="job-link" name="job_link_or_id" type="text" maxlength="500"
+                                placeholder="URL or requisition ID">
+                        </div>
+                        <div class="outreach-field">
+                            <label class="outreach-label" for="recipient-name">Recipient name <span>(optional)</span></label>
+                            <input id="recipient-name" name="recipient_name" type="text" maxlength="100"
+                                placeholder="Defaults to [Name]">
+                        </div>
+                        <div class="outreach-field">
+                            <label class="outreach-label" for="recipient-type">Recipient type</label>
+                            <select id="recipient-type" name="recipient_type">
+                                <option>Engineer / Peer</option>
+                                <option>College Alumni</option>
+                                <option>Recruiter / Hiring Manager</option>
+                            </select>
+                        </div>
+                        <div class="outreach-field">
+                            <label class="outreach-label" for="tone">Message tone</label>
+                            <select id="tone" name="tone">
+                                <option>Professional</option>
+                                <option>Warm &amp; Conversational</option>
+                                <option>Concise &amp; Direct</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="outreach-truth-note">
+                        <span aria-hidden="true">✓</span>
+                        <span>Messages are grounded in the details you provide. Review and personalize them before sending.</span>
+                    </div>
+                    <button class="outreach-primary generate-button" id="generate-button" type="submit">
+                        <span aria-hidden="true">✦</span> Generate 3-Part Outreach Kit <span aria-hidden="true">→</span>
+                    </button>
+                    <p class="outreach-loading" id="outreach-loading" role="status" hidden>
+                        <span class="outreach-spinner" aria-hidden="true"></span> Finding the best project and drafting your messages…
+                    </p>
+                    <p class="outreach-error" id="outreach-error" role="alert" hidden></p>
+                </form>
+            </section>
+
+            <section class="outreach-panel output-panel" aria-labelledby="outreach-output-heading">
+                <div class="outreach-panel-heading">
+                    <span class="panel-step">02</span>
+                    <div>
+                        <h2 id="outreach-output-heading">Ready-to-send messages</h2>
+                        <p>Edit each message, then copy it wherever you need it.</p>
+                    </div>
+                </div>
+
+                <div class="outreach-empty" id="outreach-empty">
+                    <span class="empty-icon" aria-hidden="true">✉</span>
+                    <h3>Your outreach kit will appear here</h3>
+                    <p>Choose your target company and add a resume or project summary to get started.</p>
+                </div>
+
+                <div class="outreach-result" id="outreach-result" hidden>
+                    <div class="result-meta">
+                        <span class="project-badge">Highlighted Project Used: <strong id="highlighted-project"></strong></span>
+                        <span class="result-target" id="result-target"></span>
+                    </div>
+
+                    <div class="email-subject-row">
+                        <div>
+                            <label for="email-subject">Cold email subject</label>
+                            <input id="email-subject" type="text" aria-label="Cold email subject line">
+                        </div>
+                        <button class="copy-button" type="button" data-copy-target="email-subject">Copy</button>
+                    </div>
+
+                    <article class="message-card linkedin-card">
+                        <div class="message-card-heading">
+                            <div><span class="message-number">01</span><h3>LinkedIn Connection Note</h3></div>
+                            <span class="message-hint">Keep the intro short</span>
+                        </div>
+                        <textarea id="linkedin-note" rows="4" aria-label="Editable LinkedIn connection note"></textarea>
+                        <div class="message-card-footer">
+                            <span class="character-count" id="character-count" aria-live="polite">0 / 300 chars</span>
+                            <button class="copy-button" type="button" data-copy-target="linkedin-note">Copy</button>
+                        </div>
+                    </article>
+
+                    <article class="message-card">
+                        <div class="message-card-heading">
+                            <div><span class="message-number">02</span><h3>Referral Request</h3></div>
+                            <span class="message-hint">Clear, specific, easy to answer</span>
+                        </div>
+                        <textarea id="referral-request" rows="7" aria-label="Editable referral request"></textarea>
+                        <div class="message-card-footer">
+                            <span class="word-count" id="referral-count"></span>
+                            <button class="copy-button" type="button" data-copy-target="referral-request">Copy</button>
+                        </div>
+                    </article>
+
+                    <article class="message-card">
+                        <div class="message-card-heading">
+                            <div><span class="message-number">03</span><h3>4-Day Polite Follow-Up</h3></div>
+                            <span class="message-hint">Low-pressure check-in</span>
+                        </div>
+                        <textarea id="followup-message" rows="4" aria-label="Editable four-day follow-up"></textarea>
+                        <div class="message-card-footer">
+                            <span class="word-count" id="followup-count"></span>
+                            <button class="copy-button" type="button" data-copy-target="followup-message">Copy</button>
+                        </div>
+                    </article>
+
+                    <div class="tips-panel">
+                        <h3>Recipient-specific outreach tips</h3>
+                        <ul id="outreach-tips"></ul>
+                    </div>
+                    <div class="result-actions">
+                        <button class="outreach-primary" id="regenerate-button" type="button">Regenerate with a different tone</button>
+                        <span class="copy-status" id="copy-status" role="status" hidden></span>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <section class="outreach-panel history-panel" aria-labelledby="history-heading">
+            <div class="history-heading">
+                <div>
+                    <span class="outreach-eyebrow">Saved for later</span>
+                    <h2 id="history-heading">Saved Outreach History</h2>
+                </div>
+                <span class="history-count" id="history-count">{{ saved_kits|length }} saved</span>
+            </div>
+            {% if saved_kits %}
+            <div class="saved-kit-list" id="saved-kit-list">
+                {% for saved in saved_kits %}
+                <article class="saved-kit-item" data-kit-id="{{ saved.id }}">
+                    <button class="saved-kit-load" type="button" data-load-kit="{{ saved.id }}" {% if not saved.kit %}disabled{% endif %}>
+                        <strong>{{ saved.company_name }} · {{ saved.target_role }}</strong>
+                        <span>{{ saved.recipient_type }} · {{ saved.created_at }}</span>
+                    </button>
+                    <button class="delete-kit-button" type="button" data-delete-kit="{{ saved.id }}" aria-label="Delete saved kit for {{ saved.company_name }}">Delete</button>
+                </article>
+                {% endfor %}
+            </div>
+            <div class="history-empty" id="history-empty" hidden>Your saved kits will appear here after you generate one.</div>
+            {% else %}
+            <div class="history-empty" id="history-empty">
+                {% if history_available %}
+                Your saved kits will appear here after you generate one.
+                {% else %}
+                Saved-kit history will be available after the database migration is applied.
+                {% endif %}
+            </div>
+            <div class="saved-kit-list" id="saved-kit-list" hidden></div>
+            {% endif %}
+            <p class="history-status" id="history-status" role="status" hidden></p>
+        </section>
+    </main>
+
+    <script>
+        const generateUrl = {{ url_for('api_generate_outreach_kit')|tojson }};
+        const deleteUrlTemplate = {{ delete_url|tojson }};
+        const savedKits = {{ saved_kits|tojson }};
+        const form = document.getElementById('outreach-form');
+        const uploadTab = document.getElementById('upload-tab');
+        const pasteTab = document.getElementById('paste-tab');
+        const uploadSource = document.getElementById('upload-source');
+        const pasteSource = document.getElementById('paste-source');
+        const inputMode = document.getElementById('input-mode');
+        const resumeFile = document.getElementById('resume-file');
+        const resumeText = document.getElementById('resume-text');
+        const resultPanel = document.getElementById('outreach-result');
+        const emptyPanel = document.getElementById('outreach-empty');
+        const toneSelect = document.getElementById('tone');
+        const errorMessage = document.getElementById('outreach-error');
+        function setInputMode(mode) {
+            const uploadSelected = mode === 'upload';
+            inputMode.value = mode;
+            uploadSource.hidden = !uploadSelected;
+            pasteSource.hidden = uploadSelected;
+            uploadTab.classList.toggle('active', uploadSelected);
+            pasteTab.classList.toggle('active', !uploadSelected);
+            uploadTab.setAttribute('aria-selected', String(uploadSelected));
+            pasteTab.setAttribute('aria-selected', String(!uploadSelected));
+            uploadTab.tabIndex = uploadSelected ? 0 : -1;
+            pasteTab.tabIndex = uploadSelected ? -1 : 0;
+            resumeFile.required = uploadSelected;
+            resumeFile.disabled = !uploadSelected;
+            resumeText.required = !uploadSelected;
+            resumeText.disabled = uploadSelected;
+        }
+
+        uploadTab.addEventListener('click', () => setInputMode('upload'));
+        pasteTab.addEventListener('click', () => setInputMode('paste'));
+        [uploadTab, pasteTab].forEach((tab, index, tabs) => {
+            tab.addEventListener('keydown', event => {
+                if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+                    event.preventDefault();
+                    const nextIndex = index === 0 ? 1 : 0;
+                    tabs[nextIndex].focus();
+                    setInputMode(nextIndex === 0 ? 'upload' : 'paste');
+                }
+            });
+        });
+
+        function updateCounts() {
+            const noteLength = Array.from(document.getElementById('linkedin-note').value).length;
+            const counter = document.getElementById('character-count');
+            counter.textContent = `${noteLength} / 300 chars`;
+            counter.classList.toggle('over-limit', noteLength > 300);
+            const referralWords = document.getElementById('referral-request').value.trim().split(/\s+/).filter(Boolean).length;
+            const followupWords = document.getElementById('followup-message').value.trim().split(/\s+/).filter(Boolean).length;
+            document.getElementById('referral-count').textContent = `${referralWords} words`;
+            document.getElementById('followup-count').textContent = `${followupWords} words`;
+        }
+
+        function renderKit(kit, metadata) {
+            document.getElementById('highlighted-project').textContent = kit.highlighted_project;
+            document.getElementById('result-target').textContent =
+                `${metadata.company_name} · ${metadata.target_role} · ${metadata.recipient_type} · ${metadata.tone}`;
+            document.getElementById('email-subject').value = kit.cold_email_subject;
+            document.getElementById('linkedin-note').value = kit.linkedin_connection_note;
+            document.getElementById('referral-request').value = kit.referral_request;
+            document.getElementById('followup-message').value = kit.followup_message;
+            const tips = document.getElementById('outreach-tips');
+            tips.replaceChildren();
+            (kit.outreach_tips || []).forEach(tip => {
+                const item = document.createElement('li');
+                item.textContent = tip;
+                tips.appendChild(item);
+            });
+            updateCounts();
+            emptyPanel.hidden = true;
+            resultPanel.hidden = false;
+        }
+
+        async function generateKit() {
+            errorMessage.hidden = true;
+            document.getElementById('generate-button').disabled = true;
+            document.getElementById('regenerate-button').disabled = true;
+            document.getElementById('outreach-loading').hidden = false;
+            try {
+                const response = await fetch(generateUrl, { method: 'POST', body: new FormData(form) });
+                const data = await response.json();
+                if (!response.ok || data.status !== 'success') {
+                    throw new Error(data.error || 'Could not generate the outreach kit.');
+                }
+                renderKit(data.kit, data);
+                addSavedKit(data);
+            } catch (error) {
+                errorMessage.textContent = error.message || 'Outreach-kit generation failed. Please try again.';
+                errorMessage.hidden = false;
+            } finally {
+                document.getElementById('generate-button').disabled = false;
+                document.getElementById('regenerate-button').disabled = false;
+                document.getElementById('outreach-loading').hidden = true;
+            }
+        }
+
+        form.addEventListener('submit', event => {
+            event.preventDefault();
+            generateKit();
+        });
+
+        document.querySelectorAll('#linkedin-note, #referral-request, #followup-message').forEach(textarea => {
+            textarea.addEventListener('input', updateCounts);
+        });
+
+        async function copyText(text, button) {
+            const status = document.getElementById('copy-status');
+            try {
+                await navigator.clipboard.writeText(text);
+                status.textContent = 'Copied to clipboard.';
+            } catch (error) {
+                const targetId = button.dataset.copyTarget;
+                const target = document.getElementById(targetId);
+                let copied = false;
+                try {
+                    target.focus();
+                    target.select();
+                    copied = document.execCommand('copy');
+                } catch (copyError) {
+                    copied = false;
+                }
+                status.textContent = copied ? 'Copied to clipboard.' : 'Copy was blocked. Select the text and copy it manually.';
+            }
+            status.hidden = false;
+        }
+
+        document.querySelectorAll('[data-copy-target]').forEach(button => {
+            button.addEventListener('click', () => {
+                const target = document.getElementById(button.dataset.copyTarget);
+                copyText(target.value, button);
+            });
+        });
+
+        function kitMetadata(item) {
+            return {
+                company_name: item.company_name,
+                target_role: item.target_role,
+                recipient_type: item.recipient_type,
+                tone: item.tone
+            };
+        }
+
+        function addSavedKit(data) {
+            const list = document.getElementById('saved-kit-list');
+            const empty = document.getElementById('history-empty');
+            if (empty) empty.hidden = true;
+            list.hidden = false;
+            const item = document.createElement('article');
+            item.className = 'saved-kit-item';
+            item.dataset.kitId = data.kit_id;
+            const load = document.createElement('button');
+            load.type = 'button';
+            load.className = 'saved-kit-load';
+            load.dataset.loadKit = data.kit_id;
+            load.append(
+                Object.assign(document.createElement('strong'), { textContent: `${data.company_name} · ${data.target_role}` }),
+                Object.assign(document.createElement('span'), { textContent: `${data.recipient_type} · Just now` })
+            );
+            load.addEventListener('click', () => renderKit(data.kit, data, data.kit_id));
+            const remove = document.createElement('button');
+            remove.type = 'button';
+            remove.className = 'delete-kit-button';
+            remove.dataset.deleteKit = data.kit_id;
+            remove.textContent = 'Delete';
+            remove.setAttribute('aria-label', `Delete saved kit for ${data.company_name}`);
+            remove.addEventListener('click', () => deleteKit(data.kit_id, item));
+            item.append(load, remove);
+            list.prepend(item);
+            document.getElementById('history-count').textContent = `${list.children.length} saved`;
+        }
+
+        const savedKitMap = new Map(savedKits.map(item => [String(item.id), item]));
+        document.querySelectorAll('[data-load-kit]').forEach(button => {
+            button.addEventListener('click', () => {
+                const item = savedKitMap.get(button.dataset.loadKit);
+                if (item && item.kit) renderKit(item.kit, kitMetadata(item));
+            });
+        });
+
+        async function deleteKit(kitId, item) {
+            const url = deleteUrlTemplate.replace(/0$/, String(kitId));
+            try {
+                const response = await fetch(url, { method: 'DELETE' });
+                const data = await response.json();
+                if (!response.ok || data.status !== 'success') {
+                    throw new Error(data.error || 'Could not delete the saved kit.');
+                }
+                item.remove();
+                const list = document.getElementById('saved-kit-list');
+                document.getElementById('history-count').textContent = `${list.children.length} saved`;
+                if (!list.children.length) {
+                    list.hidden = true;
+                    const empty = document.getElementById('history-empty');
+                    if (empty) {
+                        empty.textContent = 'Your saved kits will appear here after you generate one.';
+                        empty.hidden = false;
+                    }
+                }
+            } catch (error) {
+                const status = document.getElementById('history-status');
+                status.textContent = error.message || 'Could not delete the saved kit.';
+                status.hidden = false;
+            }
+        }
+
+        document.querySelectorAll('[data-delete-kit]').forEach(button => {
+            button.addEventListener('click', () => {
+                const item = button.closest('.saved-kit-item');
+                deleteKit(button.dataset.deleteKit, item);
+            });
+        });
+
+        document.getElementById('regenerate-button').addEventListener('click', () => {
+            toneSelect.selectedIndex = (toneSelect.selectedIndex + 1) % toneSelect.options.length;
+            generateKit();
+        });
+
+        setInputMode('upload');
+    </script>
+</body>
+
+</html>

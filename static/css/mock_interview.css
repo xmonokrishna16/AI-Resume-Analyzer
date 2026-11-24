@@ -426,6 +426,17 @@
     margin-top: 15px;
 }
 
+.mock-interview-completion {
+    margin: 14px 0 0;
+    padding: 14px 16px;
+    border: 1px solid #d5e7dc;
+    border-radius: 12px;
+    background: #f0faf4;
+    color: #256548;
+    font-size: 0.9rem;
+    line-height: 1.55;
+}
+
 .mock-interview-chat {
     height: 400px;
     overflow-y: auto;

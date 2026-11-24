@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Defense &amp; GitHub Grill - Skill Bridge AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/project_defense.css') }}">
+</head>
+
+<body class="project-defense-page">
+    <header class="defense-topbar">
+        <a href="{{ url_for('dashboard') }}" class="defense-brand">
+            <span class="defense-brand-mark">SB</span>
+            <span>Skill Bridge <b>AI</b></span>
+        </a>
+        <a href="{{ url_for('dashboard') }}" class="defense-back"><span aria-hidden="true">←</span> Dashboard</a>
+    </header>
+
+    <main class="defense-main">
+        <section class="defense-heading">
+            <span class="defense-eyebrow"><span aria-hidden="true">◇</span> Technical Defense</span>
+            <h1>Project Defense <span>&amp; GitHub Grill</span></h1>
+            <p>Pressure-test what you built, practice clear technical trade-offs, and leave with a defense plan grounded in your project.</p>
+        </section>
+
+        {% if history_error %}
+        <div class="defense-notice" role="status">{{ history_error }}</div>
+        {% endif %}
+
+        <nav class="defense-steps" aria-label="Project defense steps">
+            <span class="defense-step active" data-step-indicator="1"><b>01</b> Project context</span>
+            <span class="defense-step" data-step-indicator="2"><b>02</b> Senior Engineer grill</span>
+            <span class="defense-step" data-step-indicator="3"><b>03</b> Defense report</span>
+        </nav>
+
+        <section class="defense-panel" id="input-step" aria-labelledby="input-heading">
+            <div class="defense-panel-heading">
+                <span class="defense-step-number">01</span>
+                <div>
+                    <h2 id="input-heading">Tell us what you built</h2>
+                    <p>Use a public GitHub repository or describe your project yourself.</p>
+                </div>
+            </div>
+            <form id="project-form">
+                <div class="defense-form-grid">
+                    <div class="defense-field">
+                        <label for="project-name">Project name</label>
+                        <input id="project-name" name="project_name" type="text" maxlength="150"
+                            placeholder="e.g. Team Task Manager" required>
+                    </div>
+                    <div class="defense-field">
+                        <label for="repo-url">GitHub repository <span>(optional)</span></label>
+                        <input id="repo-url" name="repo_url" type="url" maxlength="255"
+                            placeholder="https://github.com/owner/repository">
+                        <small>Public repos can provide README, languages, and a file-tree sample.</small>
+                    </div>
+                    <div class="defense-field">
+                        <label for="tech-stack">Tech stack <span>(if known)</span></label>
+                        <input id="tech-stack" name="tech_stack" type="text" maxlength="255"
+                            placeholder="e.g. Flask, MySQL, React">
+                    </div>
+                    <div class="defense-field">
+                        <label for="difficulty-level">Target level</label>
+                        <select id="difficulty-level" name="difficulty_level" required>
+                            <option value="Fresher">Fresher / Intern</option>
+                            <option value="SDE-1">SDE-1</option>
+                            <option value="Senior">Senior Engineer</option>
+                        </select>
+                    </div>
+                    <div class="defense-field defense-field-wide">
+                        <label for="project-summary">Project description / architecture notes</label>
+                        <textarea id="project-summary" name="project_summary" rows="6" maxlength="12000"
+                            placeholder="What problem does it solve? Describe the main components, data flow, storage, and decisions you made. Required when the repo is private or unavailable."></textarea>
+                    </div>
+                </div>
+                <div class="defense-actions">
+                    <button class="defense-primary" id="analyze-button" type="submit">
+                        Start Senior Engineer Grill <span aria-hidden="true">→</span>
+                    </button>
+                    <span class="defense-loading" id="analyze-loading" role="status" hidden>
+                        <span class="defense-spinner" aria-hidden="true"></span> Reviewing the project evidence…
+                    </span>
+                </div>
+                <p class="defense-error" id="project-error" role="alert" hidden></p>
+            </form>
+        </section>
+
+        <section class="defense-panel defense-session" id="grill-step" aria-labelledby="grill-heading" hidden>
+            <div class="defense-panel-heading">
+                <span class="defense-step-number">02</span>
+                <div>
+                    <h2 id="grill-heading">The Senior Engineer grill</h2>
+                    <p id="project-context-line"></p>
+                </div>
+            </div>
+            <p class="defense-warning" id="github-warning" role="status" hidden></p>
+            <div class="architecture-summary">
+                <span class="summary-label">Detected architecture</span>
+                <p id="architecture-summary"></p>
+            </div>
+            <div class="blind-spots">
+                <div class="blind-spots-heading">
+                    <span aria-hidden="true">!</span>
+                    <div><strong>Blind spots to be ready to defend</strong><small>These are interview probes, not claims that your project is broken.</small></div>
+                </div>
+                <ul id="weakness-list"></ul>
+            </div>
+
+            <form id="answers-form">
+                <div class="question-list" id="question-list"></div>
+                <div class="defense-actions">
+                    <button class="defense-primary" id="evaluate-button" type="submit">
+                        Evaluate My Defense &amp; Generate Cheat Sheet <span aria-hidden="true">→</span>
+                    </button>
+                    <span class="defense-loading" id="evaluate-loading" role="status" hidden>
+                        <span class="defense-spinner" aria-hidden="true"></span> Evaluating your reasoning…
+                    </span>
+                </div>
+                <p class="defense-error" id="answer-error" role="alert" hidden></p>
+            </form>
+        </section>
+
+        <section class="defense-panel defense-report" id="report-step" aria-labelledby="report-heading" hidden>
+            <div class="defense-panel-heading">
+                <span class="defense-step-number">03</span>
+                <div>
+                    <h2 id="report-heading">Your defense report</h2>
+                    <p>Review the pushback, learn from the model answers, and take your cheat sheet with you.</p>
+                </div>
+                <div class="readiness-badge" id="readiness-badge" aria-label="Defense readiness score">
+                    <strong id="readiness-score">0</strong><span>%</span>
+                </div>
+            </div>
+
+            <div class="report-columns">
+                <section class="evaluation-section" aria-labelledby="evaluation-heading">
+                    <h3 id="evaluation-heading">Answer-by-answer feedback</h3>
+                    <div class="evaluation-list" id="evaluation-list"></div>
+                </section>
+                <section class="cheat-sheet" aria-labelledby="cheat-sheet-heading">
+                    <div class="cheat-sheet-heading">
+                        <div>
+                            <span class="defense-eyebrow">Take this into the interview</span>
+                            <h3 id="cheat-sheet-heading">Project Defense Cheat Sheet</h3>
+                        </div>
+                        <span class="cheat-sheet-icon" aria-hidden="true">▤</span>
+                    </div>
+                    <div class="cheat-sheet-content" id="cheat-sheet-content"></div>
+                    <div class="cheat-sheet-actions">
+                        <button class="defense-primary" id="download-cheatsheet" type="button">Download Cheat Sheet PDF</button>
+                        <button class="defense-secondary" id="copy-cheatsheet" type="button">Copy to Clipboard</button>
+                    </div>
+                    <p class="export-status" id="export-status" role="status" hidden></p>
+                </section>
+            </div>
+            <button class="defense-reset" id="new-defense" type="button">Start another project defense</button>
+        </section>
+
+        <section class="defense-panel history-panel" aria-labelledby="history-heading">
+            <div class="history-heading">
+                <div>
+                    <span class="defense-eyebrow">Your practice history</span>
+                    <h2 id="history-heading">Recent Defense Sessions</h2>
+                </div>
+                <span class="history-count" id="history-count">{{ defense_history|length }} saved</span>
+            </div>
+            {% if defense_history %}
+            <div class="defense-history-list" id="defense-history-list">
+                {% for session in defense_history %}
+                <article class="defense-history-item">
+                    <div class="history-project">
+                        <strong>{{ session.project_name }}</strong>
+                        <span>{{ session.difficulty_level }} · {{ session.created_at.strftime('%b %d, %Y') }}</span>
+                    </div>
+                    <div class="history-result">
+                        <span>{{ session.tech_stack }}</span>
+                        <strong>{{ session.readiness_score }}%</strong>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="history-empty" id="history-empty">
+                {% if history_available %}
+                Your completed project defenses will appear here.
+                {% else %}
+                Project-defense history will appear here after the database migration is applied.
+                {% endif %}
+            </div>
+            <div class="defense-history-list" id="defense-history-list" hidden></div>
+            {% endif %}
+        </section>
+    </main>
+
+    <script>
+        const analyzeUrl = {{ url_for('api_analyze_project_defense')|tojson }};
+        const evaluateUrl = {{ url_for('api_evaluate_project_defense')|tojson }};
+        const exportUrl = {{ url_for('api_export_project_defense_cheatsheet')|tojson }};
+        const projectForm = document.getElementById('project-form');
+        const answersForm = document.getElementById('answers-form');
+        const projectError = document.getElementById('project-error');
+        const answerError = document.getElementById('answer-error');
+        const grillStep = document.getElementById('grill-step');
+        const reportStep = document.getElementById('report-step');
+        let projectContext = null;
+        let grillQuestions = [];
+        let currentAnswers = [];
+        let cheatSheet = null;
+
+        const categoryLabels = {
+            'Architecture & Tech Choice': 'Architecture',
+            'Database & Scaling': 'Scaling',
+            'Security & Auth': 'Security',
+            'Edge Cases & Failure Handling': 'Edge Cases'
+        };
+        const categoryClasses = {
+            'Architecture & Tech Choice': 'category-architecture',
+            'Database & Scaling': 'category-scaling',
+            'Security & Auth': 'category-security',
+            'Edge Cases & Failure Handling': 'category-edge'
+        };
+
+        function setActiveStep(step) {
+            document.querySelectorAll('[data-step-indicator]').forEach(indicator => {
+                const active = Number(indicator.dataset.stepIndicator) === step;
+                indicator.classList.toggle('active', active);
+                indicator.classList.toggle('complete', Number(indicator.dataset.stepIndicator) < step);
+            });
+        }
+
+        function showError(element, message) {
+            element.textContent = message;
+            element.hidden = false;
+        }
+
+        function setLoading(button, loadingElement, loading) {
+            button.disabled = loading;
+            loadingElement.hidden = !loading;
+        }
+
+        function makeTextElement(tag, className, text) {
+            const element = document.createElement(tag);
+            if (className) element.className = className;
+            element.textContent = text || '';
+            return element;
+        }
+
+        function renderQuestions() {
+            const list = document.getElementById('question-list');
+            list.replaceChildren();
+            grillQuestions.forEach((question, index) => {
+                const card = document.createElement('article');
+                card.className = 'question-card';
+                card.dataset.questionId = question.id;
+                const top = document.createElement('div');
+                top.className = 'question-top';
+                top.append(
+                    makeTextElement('span', 'question-number', `Q${index + 1}`),
+                    makeTextElement('span', `category-badge ${categoryClasses[question.category]}`, categoryLabels[question.category])
+                );
+                const title = makeTextElement('h3', 'question-title', question.question);
+                const answer = document.createElement('textarea');
+                answer.className = 'candidate-answer';
+                answer.rows = 4;
+                answer.maxLength = 5000;
+                answer.placeholder = 'Explain your reasoning, trade-offs, and what you would improve…';
+                const skipLabel = document.createElement('label');
+                skipLabel.className = 'skip-answer';
+                const skip = document.createElement('input');
+                skip.type = 'checkbox';
+                skip.className = 'skip-checkbox';
+                const skipText = document.createElement('span');
+                skipText.textContent = "Skip / I don't know";
+                skipLabel.append(skip, skipText);
+                skip.addEventListener('change', () => {
+                    answer.disabled = skip.checked;
+                    if (skip.checked) answer.value = '';
+                });
+                card.append(top, title, answer, skipLabel);
+                list.appendChild(card);
+            });
+        }
+
+        function renderAnalysis(data) {
+            projectContext = data.project_context;
+            grillQuestions = data.grill_questions;
+            document.getElementById('project-context-line').textContent =
+                `${projectContext.project_name} · ${projectContext.tech_stack} · ${projectContext.difficulty_level}`;
+            document.getElementById('architecture-summary').textContent = data.detected_architecture_summary;
+            const weaknessList = document.getElementById('weakness-list');
+            weaknessList.replaceChildren();
+            data.potential_weaknesses.forEach(weakness => weaknessList.appendChild(makeTextElement('li', '', weakness)));
+            const warning = document.getElementById('github-warning');
+            warning.hidden = !data.warnings.length;
+            warning.textContent = data.warnings.join(' ');
+            renderQuestions();
+            grillStep.hidden = false;
+            reportStep.hidden = true;
+            setActiveStep(2);
+            grillStep.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        projectForm.addEventListener('submit', async event => {
+            event.preventDefault();
+            projectError.hidden = true;
+            document.getElementById('github-warning').hidden = true;
+            setLoading(document.getElementById('analyze-button'), document.getElementById('analyze-loading'), true);
+            const formData = new FormData(projectForm);
+            const payload = Object.fromEntries(formData.entries());
+            try {
+                const response = await fetch(analyzeUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                if (!response.ok || data.status !== 'success') {
+                    throw new Error(data.error || 'Could not analyze the project.');
+                }
+                renderAnalysis(data);
+            } catch (error) {
+                showError(projectError, error.message || 'Project analysis failed. Please try again.');
+            } finally {
+                setLoading(document.getElementById('analyze-button'), document.getElementById('analyze-loading'), false);
+            }
+        });
+
+        function collectAnswers() {
+            return Array.from(document.querySelectorAll('.question-card')).map(card => ({
+                question_id: card.dataset.questionId,
+                answer: card.querySelector('.candidate-answer').value.trim(),
+                skipped: card.querySelector('.skip-checkbox').checked
+            }));
+        }
+
+        function renderCheatSheet(sheet) {
+            const content = document.getElementById('cheat-sheet-content');
+            content.replaceChildren();
+            const sections = [
+                ['30-Second Elevator Pitch', sheet.elevator_pitch],
+                ['Key Trade-offs & Why This Stack', sheet.tradeoffs_and_stack],
+                ['Scaling & Bottleneck Answers', sheet.scaling_bottlenecks],
+                ['Security & Edge-Case Defenses', sheet.security_edge_cases]
+            ];
+            sections.forEach(([heading, body]) => {
+                content.append(
+                    makeTextElement('h4', '', heading),
+                    makeTextElement('p', '', body)
+                );
+            });
+            content.appendChild(makeTextElement('h4', '', 'Top 3 Gotcha Follow-Ups to Prepare For'));
+            const gotchas = document.createElement('ol');
+            sheet.gotcha_follow_ups.forEach(question => gotchas.appendChild(makeTextElement('li', '', question)));
+            content.appendChild(gotchas);
+        }
+
+        function renderEvaluations(evaluations, answers) {
+            const evaluationList = document.getElementById('evaluation-list');
+            evaluationList.replaceChildren();
+            evaluations.forEach(evaluation => {
+                const question = grillQuestions.find(item => item.id === evaluation.question_id);
+                const answer = answers.find(item => item.question_id === evaluation.question_id);
+                const details = document.createElement('details');
+                details.className = 'evaluation-card';
+                const summary = document.createElement('summary');
+                const summaryCopy = document.createElement('span');
+                summaryCopy.textContent = question ? question.question : 'Defense question';
+                const score = makeTextElement('strong', 'evaluation-score', `${evaluation.score}/10`);
+                summary.append(summaryCopy, score);
+                details.appendChild(summary);
+                const answerPanel = document.createElement('div');
+                answerPanel.className = 'evaluation-answer';
+                answerPanel.append(
+                    makeTextElement('span', 'evaluation-label', 'Your answer'),
+                    makeTextElement('p', '', answer && answer.skipped ? "Skipped / I don't know" : (answer ? answer.answer : ''))
+                );
+                const feedback = document.createElement('div');
+                feedback.className = 'evaluation-feedback';
+                [
+                    ['What was good', evaluation.what_was_good],
+                    ['Senior Engineer pushback', evaluation.senior_pushback],
+                    ['Strong model answer', evaluation.strong_model_answer]
+                ].forEach(([label, text]) => {
+                    const block = document.createElement('div');
+                    block.append(makeTextElement('span', 'evaluation-label', label), makeTextElement('p', '', text));
+                    feedback.appendChild(block);
+                });
+                details.append(answerPanel, feedback);
+                evaluationList.appendChild(details);
+            });
+        }
+
+        function addHistoryItem(score) {
+            const list = document.getElementById('defense-history-list');
+            const empty = document.getElementById('history-empty');
+            if (empty) empty.hidden = true;
+            list.hidden = false;
+            const item = document.createElement('article');
+            item.className = 'defense-history-item';
+            const project = document.createElement('div');
+            project.className = 'history-project';
+            project.append(
+                makeTextElement('strong', '', projectContext.project_name),
+                makeTextElement('span', '', `${projectContext.difficulty_level} · Just now`)
+            );
+            const result = document.createElement('div');
+            result.className = 'history-result';
+            result.append(
+                makeTextElement('span', '', projectContext.tech_stack),
+                makeTextElement('strong', '', `${score}%`)
+            );
+            item.append(project, result);
+            list.prepend(item);
+            document.getElementById('history-count').textContent = `${list.children.length} saved`;
+        }
+
+        answersForm.addEventListener('submit', async event => {
+            event.preventDefault();
+            answerError.hidden = true;
+            currentAnswers = collectAnswers();
+            setLoading(document.getElementById('evaluate-button'), document.getElementById('evaluate-loading'), true);
+            try {
+                const response = await fetch(evaluateUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        project_context: projectContext,
+                        grill_questions: grillQuestions,
+                        answers: currentAnswers
+                    })
+                });
+                const data = await response.json();
+                if (!response.ok || data.status !== 'success') {
+                    throw new Error(data.error || 'Could not evaluate your answers.');
+                }
+                cheatSheet = data.cheat_sheet;
+                document.getElementById('readiness-score').textContent = data.readiness_score;
+                document.getElementById('readiness-badge').style.setProperty('--readiness', `${data.readiness_score}%`);
+                renderEvaluations(data.evaluations, currentAnswers);
+                renderCheatSheet(cheatSheet);
+                reportStep.hidden = false;
+                setActiveStep(3);
+                addHistoryItem(data.readiness_score);
+                reportStep.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } catch (error) {
+                showError(answerError, error.message || 'Evaluation failed. Please try again.');
+            } finally {
+                setLoading(document.getElementById('evaluate-button'), document.getElementById('evaluate-loading'), false);
+            }
+        });
+
+        document.getElementById('download-cheatsheet').addEventListener('click', async () => {
+            const status = document.getElementById('export-status');
+            status.hidden = false;
+            status.textContent = 'Preparing your PDF…';
+            try {
+                const response = await fetch(exportUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ project_name: projectContext.project_name, cheat_sheet: cheatSheet })
+                });
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'PDF export failed.');
+                }
+                const url = URL.createObjectURL(await response.blob());
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `${projectContext.project_name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-defense-cheat-sheet.pdf`;
+                link.click();
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+                status.textContent = 'Cheat sheet PDF downloaded.';
+            } catch (error) {
+                status.textContent = error.message || 'Could not export the cheat sheet.';
+            }
+        });
+
+        document.getElementById('copy-cheatsheet').addEventListener('click', async () => {
+            const status = document.getElementById('export-status');
+            const sections = [
+                ['30-Second Elevator Pitch', cheatSheet.elevator_pitch],
+                ['Key Trade-offs & Why This Stack', cheatSheet.tradeoffs_and_stack],
+                ['Scaling & Bottleneck Answers', cheatSheet.scaling_bottlenecks],
+                ['Security & Edge-Case Defenses', cheatSheet.security_edge_cases],
+                ['Top 3 Gotcha Follow-Ups to Prepare For', cheatSheet.gotcha_follow_ups.map(item => `- ${item}`).join('\n')]
+            ];
+            const plainText = `Project Defense Cheat Sheet — ${projectContext.project_name}\n\n` +
+                sections.map(([title, body]) => `${title}\n${body}`).join('\n\n');
+            try {
+                await navigator.clipboard.writeText(plainText);
+                status.hidden = false;
+                status.textContent = 'Cheat sheet copied to clipboard.';
+            } catch (error) {
+                status.hidden = false;
+                status.textContent = 'Clipboard access was denied. Select and copy the cheat sheet text instead.';
+            }
+        });
+
+        document.getElementById('new-defense').addEventListener('click', () => {
+            projectForm.reset();
+            grillStep.hidden = true;
+            reportStep.hidden = true;
+            projectContext = null;
+            grillQuestions = [];
+            currentAnswers = [];
+            cheatSheet = null;
+            setActiveStep(1);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    </script>
+</body>
+
+</html>

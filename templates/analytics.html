@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Career Analytics - Skill Bridge AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/analytics.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body class="dashboard-page analytics-page">
+    <div class="analytics-shell">
+        <header class="analytics-topbar">
+            <a class="brand" href="{{ url_for('dashboard') }}" aria-label="Skill Bridge AI dashboard">
+                <span class="brand-mark">SB</span>
+                <span class="brand-copy">
+                    <strong>Skill Bridge <span>AI</span></strong>
+                    <small>Learn · Practice · Grow</small>
+                </span>
+            </a>
+            <a class="analytics-back" href="{{ url_for('dashboard') }}">
+                <span aria-hidden="true">←</span> Back to dashboard
+            </a>
+        </header>
+
+        <main class="analytics-content">
+            <section class="analytics-heading">
+                <span class="analytics-eyebrow"><span aria-hidden="true">✦</span> Your growth, in focus</span>
+                <h1>Career Readiness <span>&amp;</span> Performance</h1>
+                <p>See how your resume, interview practice, and MCQ training are progressing over time.</p>
+            </section>
+
+            {% if analytics_error %}
+            <div class="analytics-error" role="alert">{{ analytics_error }}</div>
+            {% else %}
+            <section class="kpi-grid" aria-label="Career readiness summary">
+                <article class="kpi-card readiness-card">
+                    <span class="kpi-label">Overall Career Readiness</span>
+                    <strong class="kpi-value">{% if readiness_score is not none %}{{ readiness_score|round|int }}%{% else %}—{% endif %}</strong>
+                    <span class="kpi-note">Weighted across the tools you’ve used</span>
+                    <div class="readiness-track" aria-hidden="true">
+                        <span style="width: {{ readiness_score if readiness_score is not none else 0 }}%"></span>
+                    </div>
+                </article>
+                <article class="kpi-card">
+                    <span class="kpi-label">Resume Quality</span>
+                    <strong class="kpi-value">{% if latest_resume_score is not none %}{{ latest_resume_score|round|int }}%{% else %}—{% endif %}</strong>
+                    {% if resume_delta is not none %}
+                    <span class="delta-badge {{ 'delta-up' if resume_delta >= 0 else 'delta-down' }}">
+                        {{ '+' if resume_delta > 0 }}{{ resume_delta|round(1) }} pp since first scan
+                    </span>
+                    {% elif resume_records %}
+                    <span class="kpi-note">Complete another scan to compare</span>
+                    {% else %}
+                    <span class="kpi-note">No scans recorded yet</span>
+                    {% endif %}
+                </article>
+                <article class="kpi-card">
+                    <span class="kpi-label">Mock Interview Status</span>
+                    <strong class="kpi-value">{{ completed_interviews }} <small>completed</small></strong>
+                    <span class="kpi-note">
+                        {% if average_interview_score is not none %}{{ average_interview_score|round|int }}% average score{% else %}No scored answers yet{% endif %}
+                        · {{ in_progress_interviews }} in progress
+                    </span>
+                </article>
+                <article class="kpi-card">
+                    <span class="kpi-label">MCQ Training Performance</span>
+                    <strong class="kpi-value">{% if average_mcq_accuracy is not none %}{{ average_mcq_accuracy|round|int }}%{% else %}—{% endif %}</strong>
+                    {% if mcq_delta is not none %}
+                    <span class="delta-badge {{ 'delta-up' if mcq_delta >= 0 else 'delta-down' }}">
+                        {{ '+' if mcq_delta > 0 }}{{ mcq_delta|round(1) }} pp since first test
+                    </span>
+                    {% elif mcq_records %}
+                    <span class="kpi-note">Complete another test to compare</span>
+                    {% else %}
+                    <span class="kpi-note">No tests recorded yet</span>
+                    {% endif %}
+                </article>
+            </section>
+
+            <section class="tailor-analytics-summary" aria-label="Resume tailoring performance">
+                <div>
+                    <span class="panel-kicker">Resume optimization</span>
+                    <h2>AI Resume Tailor</h2>
+                    {% if tailor_summary_available %}
+                    <p>{{ tailored_resume_count }} tailored resume{{ '' if tailored_resume_count == 1 else 's' }} saved
+                        {% if average_tailor_score_boost is not none %}
+                        · {{ '+' if average_tailor_score_boost > 0 }}{{ average_tailor_score_boost|round(1) }}% average ATS score boost
+                        {% else %}
+                        · Score improvement will appear after your next tailored version
+                        {% endif %}
+                    </p>
+                    {% else %}
+                    <p>Run resume_tailor_schema.sql to add Resume Tailor history to analytics.</p>
+                    {% endif %}
+                </div>
+                <a href="{{ url_for('resume_tailor_view') }}">Tailor a resume <span aria-hidden="true">→</span></a>
+            </section>
+
+            <section class="tailor-analytics-summary" aria-label="Project defense performance">
+                <div>
+                    <span class="panel-kicker">Technical defense</span>
+                    <h2>Project Defense &amp; GitHub Grill</h2>
+                    {% if project_defense_summary_available %}
+                    <p>{{ project_defense_count }} project defense{{ '' if project_defense_count == 1 else 's' }} completed
+                        {% if average_defense_readiness is not none %}
+                        · {{ average_defense_readiness|round(1) }}% average readiness
+                        {% else %}
+                        · Readiness will appear after your first completed defense
+                        {% endif %}
+                    </p>
+                    {% else %}
+                    <p>Run project_defense_schema.sql to add project defense history to analytics.</p>
+                    {% endif %}
+                </div>
+                <a href="{{ url_for('project_defense_view') }}">Defend a project <span aria-hidden="true">→</span></a>
+            </section>
+
+            <section class="tailor-analytics-summary" aria-label="Outreach kit activity">
+                <div>
+                    <span class="panel-kicker">Networking &amp; referrals</span>
+                    <h2>Cold Outreach &amp; Referral Kit</h2>
+                    {% if outreach_kit_summary_available %}
+                    <p>{{ outreach_kit_count }} outreach kit{{ '' if outreach_kit_count == 1 else 's' }} generated</p>
+                    {% else %}
+                    <p>Run outreach_kit_schema.sql to add outreach-kit activity to analytics.</p>
+                    {% endif %}
+                </div>
+                <a href="{{ url_for('outreach_kit_view') }}">Generate a kit <span aria-hidden="true">→</span></a>
+            </section>
+
+            <section class="tailor-analytics-summary" aria-label="Rejection recovery performance">
+                <div>
+                    <span class="panel-kicker">Comeback &amp; recovery</span>
+                    <h2>Rejection Autopsy &amp; Recovery Sprint</h2>
+                    {% if rejection_autopsy_summary_available %}
+                    <p>{{ completed_recovery_sprint_count }} recovery sprint{{ '' if completed_recovery_sprint_count == 1 else 's' }} completed
+                        {% if most_common_failure_pattern %}
+                        · Most common pattern: {{ most_common_failure_pattern }}
+                        {% else %}
+                        · Your most common pattern will appear after multiple autopsies
+                        {% endif %}
+                    </p>
+                    {% else %}
+                    <p>Run rejection_autopsy_schema.sql to add recovery-sprint activity to analytics.</p>
+                    {% endif %}
+                </div>
+                <a href="{{ url_for('rejection_autopsy_view') }}">Run an autopsy <span aria-hidden="true">→</span></a>
+            </section>
+
+            <section class="analytics-panel timeline-panel" aria-labelledby="timeline-heading">
+                <div class="panel-heading">
+                    <div>
+                        <span class="panel-kicker">Performance over time</span>
+                        <h2 id="timeline-heading">Unified Improvement Timeline</h2>
+                    </div>
+                    <span class="panel-caption">Scores shown as a percentage</span>
+                </div>
+                {% if timeline_labels %}
+                <div class="timeline-chart-wrap">
+                    <canvas id="timelineChart" aria-label="Resume, interview, and MCQ scores over time" role="img"></canvas>
+                </div>
+                {% else %}
+                <div class="chart-empty">Your timeline will appear here after your first resume scan, interview, or MCQ test.</div>
+                {% endif %}
+            </section>
+
+            <section class="analytics-panel activity-panel" aria-labelledby="activity-heading">
+                <div class="panel-heading activity-heading">
+                    <div>
+                        <span class="panel-kicker">Your learning history</span>
+                        <h2 id="activity-heading">Activity &amp; Report Breakdown</h2>
+                    </div>
+                </div>
+
+                <div class="activity-tabs" role="tablist" aria-label="Activity type">
+                    <button class="activity-tab active" id="tab-resume" role="tab" aria-selected="true"
+                        aria-controls="panel-resume" type="button">Resume</button>
+                    <button class="activity-tab" id="tab-interviews" role="tab" aria-selected="false"
+                        aria-controls="panel-interviews" type="button" tabindex="-1">Interviews</button>
+                    <button class="activity-tab" id="tab-mcq" role="tab" aria-selected="false"
+                        aria-controls="panel-mcq" type="button" tabindex="-1">MCQ Training</button>
+                </div>
+
+                <section class="activity-tabpanel" id="panel-resume" role="tabpanel"
+                    aria-labelledby="tab-resume">
+                    {% if resume_records %}
+                    <div class="table-scroll">
+                        <table class="activity-table">
+                            <thead><tr><th>Date</th><th>Target role</th><th>ATS score</th><th>Change</th><th>Missing keywords</th></tr></thead>
+                            <tbody>
+                                {% for record in resume_records|reverse %}
+                                <tr>
+                                    <td>{{ record.created_at.strftime('%b %d, %Y') }}</td>
+                                    <td>{{ record.target_role }}</td>
+                                    <td><span class="score-pill">{{ record.ats_score|round(1) if record.ats_score is not none else '—' }}{% if record.ats_score is not none %}%{% endif %}</span></td>
+                                    <td>
+                                        {% if record.score_change is not none %}
+                                        <span class="change-value {{ 'positive' if record.score_change >= 0 else 'negative' }}">
+                                            {{ '+' if record.score_change > 0 }}{{ record.score_change|round(1) }} pp
+                                        </span>
+                                        {% else %}<span class="muted-value">First scan</span>{% endif %}
+                                    </td>
+                                    <td>{{ record.missing_keywords_count }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="activity-empty">
+                        <span class="empty-icon" aria-hidden="true">↗</span>
+                        <h3>Start with a resume scan</h3>
+                        <p>Your ATS scores and role-specific improvements will show up here.</p>
+                        <a class="empty-action" href="{{ url_for('home') }}">Analyze my resume <span aria-hidden="true">→</span></a>
+                    </div>
+                    {% endif %}
+                </section>
+
+                <section class="activity-tabpanel" id="panel-interviews" role="tabpanel"
+                    aria-labelledby="tab-interviews" hidden>
+                    {% if interview_records %}
+                    <div class="table-scroll">
+                        <table class="activity-table">
+                            <thead><tr><th>Date</th><th>Category</th><th>Status</th><th>Score</th><th>Feedback</th></tr></thead>
+                            <tbody>
+                                {% for record in interview_records|reverse %}
+                                <tr>
+                                    <td>{{ record.created_at.strftime('%b %d, %Y') }}</td>
+                                    <td>{{ record.category }}</td>
+                                    <td><span class="status-pill {{ 'status-complete' if record.status == 'Completed' else 'status-progress' }}">{{ record.status }}</span></td>
+                                    <td><span class="score-pill">{{ record.overall_score|round(1) if record.overall_score is not none else '—' }}{% if record.overall_score is not none %}%{% endif %}</span></td>
+                                    <td>
+                                        {% if record.feedback_summary %}
+                                        <details class="feedback-details">
+                                            <summary>View feedback</summary>
+                                            <p>{{ record.feedback_summary }}</p>
+                                        </details>
+                                        {% else %}<span class="muted-value">No feedback yet</span>{% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="activity-empty">
+                        <span class="empty-icon" aria-hidden="true">◉</span>
+                        <h3>Practice your interview skills</h3>
+                        <p>Completed sessions, AI feedback, and scores will be collected here.</p>
+                        <a class="empty-action" href="{{ url_for('mock_interview') }}">Start a mock interview <span aria-hidden="true">→</span></a>
+                    </div>
+                    {% endif %}
+                </section>
+
+                <section class="activity-tabpanel" id="panel-mcq" role="tabpanel"
+                    aria-labelledby="tab-mcq" hidden>
+                    {% if mcq_records %}
+                    {% if topic_labels %}
+                    <div class="topic-chart-block">
+                        <h3>Average accuracy by topic</h3>
+                        <div class="topic-chart-wrap">
+                            <canvas id="topicChart" aria-label="Average MCQ accuracy by topic" role="img"></canvas>
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="table-scroll">
+                        <table class="activity-table">
+                            <thead><tr><th>Date</th><th>Topic</th><th>Score</th><th>Accuracy</th></tr></thead>
+                            <tbody>
+                                {% for record in mcq_records|reverse %}
+                                <tr>
+                                    <td>{{ record.created_at.strftime('%b %d, %Y') }}</td>
+                                    <td>{{ record.topic_name }}</td>
+                                    <td>{{ record.score }}/{{ record.total_questions }}</td>
+                                    <td><span class="score-pill">{{ record.score_percentage|round(1) if record.score_percentage is not none else '—' }}{% if record.score_percentage is not none %}%{% endif %}</span></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="activity-empty">
+                        <span class="empty-icon" aria-hidden="true">✓</span>
+                        <h3>Build your knowledge with a practice test</h3>
+                        <p>Test accuracy and improvement by topic will appear here after your first MCQ exam.</p>
+                        <a class="empty-action" href="{{ url_for('mcq_generator_view') }}">Generate a practice test <span aria-hidden="true">→</span></a>
+                    </div>
+                    {% endif %}
+                </section>
+            </section>
+            {% endif %}
+        </main>
+    </div>
+
+    <script>
+        const timelineLabels = {{ timeline_labels|default([])|tojson }};
+        const resumeScores = {{ resume_chart_scores|default([])|tojson }};
+        const interviewScores = {{ interview_chart_scores|default([])|tojson }};
+        const mcqScores = {{ mcq_chart_scores|default([])|tojson }};
+        const topicLabels = {{ topic_labels|default([])|tojson }};
+        const topicAverages = {{ topic_averages|default([])|tojson }};
+
+        if (timelineLabels.length && document.getElementById('timelineChart')) {
+            new Chart(document.getElementById('timelineChart'), {
+                type: 'line',
+                data: {
+                    labels: timelineLabels,
+                    datasets: [
+                        { label: 'Resume ATS', data: resumeScores, borderColor: '#4d72f5', backgroundColor: '#4d72f5', spanGaps: false, tension: 0.32 },
+                        { label: 'Mock Interviews', data: interviewScores, borderColor: '#16a786', backgroundColor: '#16a786', spanGaps: false, tension: 0.32 },
+                        { label: 'MCQ Tests', data: mcqScores, borderColor: '#915af0', backgroundColor: '#915af0', spanGaps: false, tension: 0.32 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 22 } } },
+                    scales: {
+                        y: { min: 0, max: 100, ticks: { callback: value => value + '%' }, grid: { color: '#edf0f7' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        if (topicLabels.length && document.getElementById('topicChart')) {
+            new Chart(document.getElementById('topicChart'), {
+                type: 'bar',
+                data: {
+                    labels: topicLabels,
+                    datasets: [{ label: 'Average accuracy', data: topicAverages, backgroundColor: '#6f67ed', borderRadius: 8, maxBarThickness: 48 }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { min: 0, max: 100, ticks: { callback: value => value + '%' }, grid: { color: '#edf0f7' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        const activityTabs = Array.from(document.querySelectorAll('.activity-tab'));
+        activityTabs.forEach((tab, index) => {
+            tab.addEventListener('click', () => activateTab(index));
+            tab.addEventListener('keydown', event => {
+                if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+                    event.preventDefault();
+                    const direction = event.key === 'ArrowRight' ? 1 : -1;
+                    const nextIndex = (index + direction + activityTabs.length) % activityTabs.length;
+                    activateTab(nextIndex);
+                    activityTabs[nextIndex].focus();
+                }
+            });
+        });
+
+        function activateTab(activeIndex) {
+            activityTabs.forEach((tab, index) => {
+                const isActive = index === activeIndex;
+                tab.classList.toggle('active', isActive);
+                tab.setAttribute('aria-selected', String(isActive));
+                tab.tabIndex = isActive ? 0 : -1;
+                document.getElementById(tab.getAttribute('aria-controls')).hidden = !isActive;
+            });
+        }
+    </script>
+</body>
+
+</html>

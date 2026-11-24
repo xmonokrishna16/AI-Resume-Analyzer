@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Resume Tailor - Skill Bridge AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/resume_tailor.css') }}">
+</head>
+
+<body class="resume-tailor-page">
+    <header class="tailor-topbar">
+        <a href="{{ url_for('dashboard') }}" class="brand-logo">
+            <span class="logo-icon">SB</span>
+            <span>Skill Bridge <span class="highlight">AI</span></span>
+        </a>
+        <a href="{{ url_for('dashboard') }}" class="tailor-back"><span aria-hidden="true">←</span> Dashboard</a>
+    </header>
+
+    <main class="tailor-main">
+        <section class="tailor-heading">
+            <span class="tailor-eyebrow"><span aria-hidden="true">✦</span> Resume optimization</span>
+            <h1>AI Resume <span>Tailor</span></h1>
+            <p>Bring your real experience closer to the role. Improve ATS alignment without inventing credentials or skills.</p>
+        </section>
+
+        {% if history_error %}
+        <div class="tailor-notice" role="status">{{ history_error }}</div>
+        {% endif %}
+
+        <section class="tailor-workspace" aria-label="Resume tailoring workspace">
+            <div class="tailor-panel input-panel">
+                <div class="panel-title">
+                    <span class="step-number">01</span>
+                    <div>
+                        <h2>Your resume &amp; target</h2>
+                        <p>Start from a resume or enter your details.</p>
+                    </div>
+                </div>
+
+                <div class="source-tabs" role="tablist" aria-label="Resume source">
+                    <button class="source-tab active" id="upload-tab" type="button" role="tab"
+                        aria-selected="true" aria-controls="upload-source">Upload resume</button>
+                    <button class="source-tab" id="manual-tab" type="button" role="tab"
+                        aria-selected="false" aria-controls="manual-source" tabindex="-1">Enter details</button>
+                </div>
+
+                <form id="tailor-form">
+                    <input type="hidden" name="input_mode" id="input-mode" value="upload">
+                    <div class="source-panel" id="upload-source" role="tabpanel" aria-labelledby="upload-tab">
+                        <label class="field-label" for="resume-file">Existing resume (PDF or DOCX)</label>
+                        <div class="resume-file-box">
+                            <span class="upload-mark" aria-hidden="true">↑</span>
+                            <div>
+                                <input id="resume-file" type="file" name="resume" accept=".pdf,.docx" required>
+                                <small>We extract your existing details and keep your experience factual.</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="source-panel" id="manual-source" role="tabpanel" aria-labelledby="manual-tab" hidden>
+                        <p class="form-hint">Share the facts you want included. Leave any unknown or irrelevant field blank.</p>
+                        <div class="manual-grid">
+                            <div class="field-group">
+                                <label class="field-label" for="manual-name">Name</label>
+                                <input id="manual-name" name="name" type="text" autocomplete="name" placeholder="Your name">
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label" for="manual-contact">Contact details</label>
+                                <input id="manual-contact" name="contact" type="text" placeholder="Email · phone · LinkedIn">
+                            </div>
+                            <div class="field-group manual-wide">
+                                <label class="field-label" for="manual-summary">Current summary</label>
+                                <textarea id="manual-summary" name="summary" rows="3" placeholder="Your background and strengths"></textarea>
+                            </div>
+                            <div class="field-group manual-wide">
+                                <label class="field-label" for="manual-skills">Skills</label>
+                                <textarea id="manual-skills" name="skills" rows="3" placeholder="One skill or skill group per line"></textarea>
+                            </div>
+                            <div class="field-group manual-wide">
+                                <label class="field-label" for="manual-experience">Experience</label>
+                                <textarea id="manual-experience" name="experience" rows="4" placeholder="Roles, employers, dates, and real accomplishments"></textarea>
+                            </div>
+                            <div class="field-group manual-wide">
+                                <label class="field-label" for="manual-projects">Projects</label>
+                                <textarea id="manual-projects" name="projects" rows="4" placeholder="Project names, technologies, and outcomes"></textarea>
+                            </div>
+                            <div class="field-group manual-wide">
+                                <label class="field-label" for="manual-education">Education</label>
+                                <textarea id="manual-education" name="education" rows="3" placeholder="Degrees, institutions, and dates"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field-group">
+                        <label class="field-label" for="target-role">Target role</label>
+                        <input id="target-role" name="target_role" type="text" maxlength="150"
+                            placeholder="e.g. Data Analyst" required>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label" for="company-name">Company <span>(optional)</span></label>
+                        <input id="company-name" name="company_name" type="text" maxlength="150"
+                            placeholder="e.g. Acme Inc.">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label" for="job-description">Target job description</label>
+                        <textarea id="job-description" name="job_description" rows="7"
+                            placeholder="Paste the full job description here..." required></textarea>
+                    </div>
+
+                    <div class="truth-note">
+                        <span aria-hidden="true">✓</span>
+                        <span>Only reframe your real background. The AI must not invent employers, degrees, or skills.</span>
+                    </div>
+                    <button class="tailor-submit" id="generate-button" type="submit">
+                        <span aria-hidden="true">✦</span> Generate Tailored Resume <span aria-hidden="true">→</span>
+                    </button>
+                    <p class="tailor-loading" id="tailor-loading" role="status" hidden>
+                        <span class="loading-ring" aria-hidden="true"></span> Comparing your experience with the job description…
+                    </p>
+                    <p class="tailor-error" id="tailor-error" role="alert" hidden></p>
+                </form>
+            </div>
+
+            <div class="tailor-panel output-panel">
+                <div class="panel-title">
+                    <span class="step-number">02</span>
+                    <div>
+                        <h2>Your tailored resume</h2>
+                        <p>Edit any text in the preview before exporting.</p>
+                    </div>
+                </div>
+
+                <div class="output-empty" id="output-empty">
+                    <span class="empty-art" aria-hidden="true">✧</span>
+                    <h3>Your preview will appear here</h3>
+                    <p>Add your resume and a target job description to see the tailored version and estimated ATS match.</p>
+                </div>
+
+                <div id="tailored-output" hidden>
+                    <div class="score-boost">
+                        <div class="score-heading">
+                            <div>
+                                <span class="score-kicker">Estimated ATS match</span>
+                                <strong>Score alignment</strong>
+                            </div>
+                            <span class="boost-pill" id="score-boost">+0% boost</span>
+                        </div>
+                        <div class="score-comparison">
+                            <div><span>Original Match</span><strong id="original-score">—</strong></div>
+                            <span class="score-arrow" aria-hidden="true">→</span>
+                            <div><span>Tailored Match</span><strong class="tailored-score" id="tailored-score">—</strong></div>
+                        </div>
+                    </div>
+
+                    <div class="keyword-block">
+                        <h3>Relevant keywords emphasized</h3>
+                        <div class="keyword-pills" id="keyword-pills"></div>
+                    </div>
+
+                    <details class="improvement-details">
+                        <summary>What changed</summary>
+                        <ul id="improvement-list"></ul>
+                    </details>
+
+                    <div class="preview-heading">
+                        <h3>ATS-friendly preview</h3>
+                        <span>Click text to edit</span>
+                    </div>
+                    <article class="resume-paper" id="resume-paper" aria-label="Editable tailored resume preview"></article>
+
+                    <div class="export-actions">
+                        <button class="export-button export-primary" type="button" data-export-format="pdf">Download ATS PDF</button>
+                        <button class="export-button" type="button" data-export-format="docx">Download DOCX</button>
+                        <button class="export-button export-copy" id="copy-resume" type="button">Copy Plain Text</button>
+                    </div>
+                    <p class="export-status" id="export-status" role="status" hidden></p>
+                </div>
+            </div>
+        </section>
+
+        <section class="tailor-panel history-panel" aria-labelledby="history-heading">
+            <div class="history-heading">
+                <div class="panel-title">
+                    <span class="step-number">↻</span>
+                    <div>
+                        <h2 id="history-heading">Recent tailored resumes</h2>
+                        <p>Your saved role-specific versions.</p>
+                    </div>
+                </div>
+                <span class="history-count" id="history-count">{{ tailored_history|length }} saved</span>
+            </div>
+            {% if tailored_history %}
+            <div class="history-list" id="history-list">
+                {% for item in tailored_history %}
+                {% set score_boost = item.tailored_ats_score - item.original_ats_score %}
+                <article class="history-item">
+                    <div class="history-role">
+                        <strong>{{ item.target_role }}</strong>
+                        <span>{{ item.company_name or 'Company not specified' }} · {{ item.created_at.strftime('%b %d, %Y') }}</span>
+                    </div>
+                    <div class="history-scores">
+                        <span>{{ item.original_ats_score }}% <span aria-hidden="true">→</span> {{ item.tailored_ats_score }}%</span>
+                        <strong class="{{ 'history-positive' if score_boost >= 0 else 'history-negative' }}">
+                            {{ '+' if score_boost > 0 }}{{ score_boost }}%
+                        </strong>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="history-empty" id="history-empty">
+                {% if history_available %}
+                Your tailored resume history will appear here after your first generation.
+                {% else %}
+                Your history will be available after the database migration is applied.
+                {% endif %}
+            </div>
+            <div class="history-list" id="history-list" hidden></div>
+            {% endif %}
+        </section>
+    </main>
+
+    <script>
+        const form = document.getElementById('tailor-form');
+        const uploadTab = document.getElementById('upload-tab');
+        const manualTab = document.getElementById('manual-tab');
+        const uploadSource = document.getElementById('upload-source');
+        const manualSource = document.getElementById('manual-source');
+        const fileInput = document.getElementById('resume-file');
+        const inputMode = document.getElementById('input-mode');
+        const errorMessage = document.getElementById('tailor-error');
+        const loadingMessage = document.getElementById('tailor-loading');
+        const generateButton = document.getElementById('generate-button');
+        const outputPanel = document.getElementById('tailored-output');
+        const outputEmpty = document.getElementById('output-empty');
+        let tailoredResume = null;
+        let resumeTargetRole = '';
+        let resumeCompanyName = '';
+
+        function setInputMode(mode) {
+            const uploadSelected = mode === 'upload';
+            inputMode.value = mode;
+            uploadSource.hidden = !uploadSelected;
+            manualSource.hidden = uploadSelected;
+            uploadTab.classList.toggle('active', uploadSelected);
+            manualTab.classList.toggle('active', !uploadSelected);
+            uploadTab.setAttribute('aria-selected', String(uploadSelected));
+            manualTab.setAttribute('aria-selected', String(!uploadSelected));
+            uploadTab.tabIndex = uploadSelected ? 0 : -1;
+            manualTab.tabIndex = uploadSelected ? -1 : 0;
+            fileInput.required = uploadSelected;
+            fileInput.disabled = !uploadSelected;
+        }
+
+        uploadTab.addEventListener('click', () => setInputMode('upload'));
+        manualTab.addEventListener('click', () => setInputMode('manual'));
+
+        [uploadTab, manualTab].forEach((tab, index, tabs) => {
+            tab.addEventListener('keydown', event => {
+                if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+                    event.preventDefault();
+                    const nextIndex = index === 0 ? 1 : 0;
+                    tabs[nextIndex].focus();
+                    setInputMode(nextIndex === 0 ? 'upload' : 'manual');
+                }
+            });
+        });
+
+        function editable(tagName, value, path, className) {
+            const element = document.createElement(tagName);
+            element.contentEditable = 'true';
+            element.spellcheck = true;
+            element.dataset.resumePath = path;
+            element.className = className || 'editable-text';
+            element.textContent = value || '';
+            return element;
+        }
+
+        function addSection(paper, title) {
+            const heading = document.createElement('h2');
+            heading.className = 'resume-section-title';
+            heading.textContent = title;
+            paper.appendChild(heading);
+        }
+
+        function addEditableLine(parent, tag, value, path, className) {
+            const element = editable(tag, value, path, className);
+            parent.appendChild(element);
+            return element;
+        }
+
+        function addLocationAndDates(parent, record, path) {
+            const line = document.createElement('p');
+            line.className = 'resume-meta';
+            addEditableLine(line, 'span', record.location, `${path}.location`);
+            if (record.location && record.dates) {
+                line.appendChild(document.createTextNode(' · '));
+            }
+            addEditableLine(line, 'span', record.dates, `${path}.dates`);
+            parent.appendChild(line);
+        }
+
+        function addBullets(parent, items, path) {
+            if (!items.length) return;
+            const list = document.createElement('ul');
+            list.className = 'resume-bullets';
+            items.forEach((item, index) => {
+                const bullet = document.createElement('li');
+                bullet.appendChild(editable('span', item, `${path}.${index}`));
+                list.appendChild(bullet);
+            });
+            parent.appendChild(list);
+        }
+
+        function renderResume(resume) {
+            const paper = document.getElementById('resume-paper');
+            paper.replaceChildren();
+
+            const header = resume.header || {};
+            addEditableLine(paper, 'h1', header.name, 'header.name', 'resume-name');
+            addEditableLine(paper, 'p', header.contact, 'header.contact', 'resume-contact');
+            addEditableLine(paper, 'p', header.headline, 'header.headline', 'resume-headline');
+
+            addSection(paper, 'Professional Summary');
+            addEditableLine(paper, 'p', resume.summary, 'summary', 'resume-summary');
+
+            if (resume.skills && resume.skills.length) {
+                addSection(paper, 'Skills');
+                resume.skills.forEach((group, index) => {
+                    const line = document.createElement('p');
+                    line.className = 'resume-skill-line';
+                    addEditableLine(line, 'strong', group.category, `skills.${index}.category`);
+                    if (group.items && group.items.length) {
+                        line.appendChild(document.createTextNode(group.category ? ': ' : ''));
+                        group.items.forEach((item, itemIndex) => {
+                            if (itemIndex) line.appendChild(document.createTextNode(' · '));
+                            line.appendChild(editable('span', item, `skills.${index}.items.${itemIndex}`));
+                        });
+                    }
+                    paper.appendChild(line);
+                });
+            }
+
+            if (resume.experience && resume.experience.length) {
+                addSection(paper, 'Experience');
+                resume.experience.forEach((entry, index) => {
+                    const block = document.createElement('div');
+                    block.className = 'resume-entry';
+                    const titleLine = document.createElement('h3');
+                    addEditableLine(titleLine, 'span', entry.title, `experience.${index}.title`);
+                    titleLine.appendChild(document.createTextNode(entry.title && entry.company ? ' | ' : ''));
+                    addEditableLine(titleLine, 'span', entry.company, `experience.${index}.company`);
+                    block.appendChild(titleLine);
+                    addLocationAndDates(block, entry, `experience.${index}`);
+                    addBullets(block, entry.bullets || [], `experience.${index}.bullets`);
+                    paper.appendChild(block);
+                });
+            }
+
+            if (resume.projects && resume.projects.length) {
+                addSection(paper, 'Projects');
+                resume.projects.forEach((entry, index) => {
+                    const block = document.createElement('div');
+                    block.className = 'resume-entry';
+                    addEditableLine(block, 'h3', entry.name, `projects.${index}.name`);
+                    addEditableLine(block, 'p', entry.technologies, `projects.${index}.technologies`, 'resume-meta');
+                    addBullets(block, entry.bullets || [], `projects.${index}.bullets`);
+                    paper.appendChild(block);
+                });
+            }
+
+            if (resume.education && resume.education.length) {
+                addSection(paper, 'Education');
+                resume.education.forEach((entry, index) => {
+                    const block = document.createElement('div');
+                    block.className = 'resume-entry';
+                    const titleLine = document.createElement('h3');
+                    addEditableLine(titleLine, 'span', entry.degree, `education.${index}.degree`);
+                    titleLine.appendChild(document.createTextNode(entry.degree && entry.institution ? ' | ' : ''));
+                    addEditableLine(titleLine, 'span', entry.institution, `education.${index}.institution`);
+                    block.appendChild(titleLine);
+                    addLocationAndDates(block, entry, `education.${index}`);
+                    addBullets(block, entry.details || [], `education.${index}.details`);
+                    paper.appendChild(block);
+                });
+            }
+        }
+
+        function setPath(target, path, value) {
+            const parts = path.split('.');
+            const lastPart = parts.pop();
+            const parent = parts.reduce((current, part) => current[part], target);
+            parent[lastPart] = value;
+        }
+
+        function getEditedResume() {
+            const edited = JSON.parse(JSON.stringify(tailoredResume));
+            document.querySelectorAll('#resume-paper [data-resume-path]').forEach(element => {
+                setPath(edited, element.dataset.resumePath, element.textContent.trim());
+            });
+            return edited;
+        }
+
+        function renderResult(data) {
+            tailoredResume = data.tailored_resume;
+            resumeTargetRole = data.target_role;
+            resumeCompanyName = data.company_name || '';
+            const delta = data.tailored_ats_score - data.original_ats_score;
+
+            document.getElementById('original-score').textContent = `${data.original_ats_score}%`;
+            document.getElementById('tailored-score').textContent = `${data.tailored_ats_score}%`;
+            const boost = document.getElementById('score-boost');
+            boost.textContent = `${delta > 0 ? '+' : ''}${delta}% boost`;
+            boost.classList.toggle('boost-negative', delta < 0);
+
+            const keywords = document.getElementById('keyword-pills');
+            keywords.replaceChildren();
+            (data.added_keywords || []).forEach(keyword => {
+                const pill = document.createElement('span');
+                pill.className = 'keyword-pill';
+                pill.textContent = keyword;
+                keywords.appendChild(pill);
+            });
+            if (!keywords.childElementCount) {
+                const none = document.createElement('span');
+                none.className = 'keyword-empty';
+                none.textContent = 'No new supported keywords were needed.';
+                keywords.appendChild(none);
+            }
+
+            const improvements = document.getElementById('improvement-list');
+            improvements.replaceChildren();
+            (data.key_improvements || []).forEach(improvement => {
+                const item = document.createElement('li');
+                item.textContent = improvement;
+                improvements.appendChild(item);
+            });
+
+            renderResume(tailoredResume);
+            outputEmpty.hidden = true;
+            outputPanel.hidden = false;
+            addHistoryItem(data);
+        }
+
+        function addHistoryItem(data) {
+            const list = document.getElementById('history-list');
+            const empty = document.getElementById('history-empty');
+            if (empty) empty.hidden = true;
+            list.hidden = false;
+            const delta = data.tailored_ats_score - data.original_ats_score;
+            const item = document.createElement('article');
+            item.className = 'history-item';
+            const role = document.createElement('div');
+            role.className = 'history-role';
+            const title = document.createElement('strong');
+            title.textContent = data.target_role;
+            const detail = document.createElement('span');
+            detail.textContent = `${data.company_name || 'Company not specified'} · Just now`;
+            role.append(title, detail);
+            const scores = document.createElement('div');
+            scores.className = 'history-scores';
+            const scoreText = document.createElement('span');
+            scoreText.textContent = `${data.original_ats_score}% → ${data.tailored_ats_score}%`;
+            const scoreDelta = document.createElement('strong');
+            scoreDelta.className = delta >= 0 ? 'history-positive' : 'history-negative';
+            scoreDelta.textContent = `${delta > 0 ? '+' : ''}${delta}%`;
+            scores.append(scoreText, scoreDelta);
+            item.append(role, scores);
+            list.prepend(item);
+            document.getElementById('history-count').textContent = `${list.children.length} saved`;
+        }
+
+        form.addEventListener('submit', async event => {
+            event.preventDefault();
+            errorMessage.hidden = true;
+            loadingMessage.hidden = false;
+            generateButton.disabled = true;
+            try {
+                const response = await fetch('/api/tailor-resume', {
+                    method: 'POST',
+                    body: new FormData(form)
+                });
+                const data = await response.json();
+                if (!response.ok || data.status !== 'success') {
+                    throw new Error(data.error || 'Unable to tailor this resume.');
+                }
+                renderResult(data);
+            } catch (error) {
+                errorMessage.textContent = error.message || 'Resume tailoring failed. Please try again.';
+                errorMessage.hidden = false;
+            } finally {
+                loadingMessage.hidden = true;
+                generateButton.disabled = false;
+            }
+        });
+
+        async function exportResume(format) {
+            const status = document.getElementById('export-status');
+            status.hidden = false;
+            status.textContent = `Preparing ${format.toUpperCase()}…`;
+            try {
+                const response = await fetch('/api/export-tailored-resume', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ format, tailored_resume: getEditedResume() })
+                });
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Export failed.');
+                }
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `${resumeTargetRole.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-resume.${format}`;
+                link.click();
+                URL.revokeObjectURL(url);
+                status.textContent = `${format.toUpperCase()} downloaded.`;
+            } catch (error) {
+                status.textContent = error.message || 'Could not export this resume.';
+            }
+        }
+
+        document.querySelectorAll('[data-export-format]').forEach(button => {
+            button.addEventListener('click', () => exportResume(button.dataset.exportFormat));
+        });
+
+        function resumeAsPlainText(resume) {
+            const lines = [];
+            const header = resume.header || {};
+            if (header.name) lines.push(header.name);
+            if (header.contact) lines.push(header.contact);
+            if (header.headline) lines.push(header.headline);
+            if (resume.summary) lines.push('', 'PROFESSIONAL SUMMARY', resume.summary);
+            if (resume.skills && resume.skills.length) {
+                lines.push('', 'SKILLS');
+                resume.skills.forEach(group => lines.push(`${group.category}: ${(group.items || []).join(', ')}`));
+            }
+            [['experience', 'EXPERIENCE'], ['projects', 'PROJECTS'], ['education', 'EDUCATION']].forEach(([key, title]) => {
+                if (!resume[key] || !resume[key].length) return;
+                lines.push('', title);
+                resume[key].forEach(entry => {
+                    lines.push(Object.values(entry).filter(value => typeof value === 'string' && value).slice(0, 4).join(' | '));
+                    const bullets = entry.bullets || entry.details || [];
+                    bullets.forEach(bullet => lines.push(`- ${bullet}`));
+                });
+            });
+            return lines.join('\n');
+        }
+
+        document.getElementById('copy-resume').addEventListener('click', async () => {
+            const status = document.getElementById('export-status');
+            try {
+                await navigator.clipboard.writeText(resumeAsPlainText(getEditedResume()));
+                status.hidden = false;
+                status.textContent = 'Plain text copied to clipboard.';
+            } catch (error) {
+                status.hidden = false;
+                status.textContent = 'Clipboard access was denied. Select and copy the preview text instead.';
+            }
+        });
+    </script>
+</body>
+
+</html>
